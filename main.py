@@ -8,7 +8,7 @@ import subprocess
 import struct
 
 # ------------------ 消息类型 ------------------
-MSG_LIDAR      = 0x01
+MSG_LIDAR     = 0x01
 MSG_ENCODER   = 0x02
 MSG_CMD_PULL  = 0x10
 MSG_CMD_REPLY = 0x11
