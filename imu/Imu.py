@@ -10,7 +10,7 @@ from model.models import (
 
 
 class IMUSensor:
-    def __init__(self, port="/dev/ttyUSB0", baud=9600, queue_size=2000):
+    def __init__(self, port="/dev/ttyUSB0", baud=9600, queue_size=100):
         self.ser = serial.Serial(port, baud, timeout=0.1)
         self.buffer = bytearray()
 
