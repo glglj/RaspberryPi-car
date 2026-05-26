@@ -4,6 +4,7 @@
     <content url="file://$MODULE_DIR$">
       <excludeFolder url="file://$MODULE_DIR$/.venv" />
       <excludeFolder url="file://$MODULE_DIR$/frp_0.66.0_linux_arm" />
+      <excludeFolder url="file://$MODULE_DIR$/.continue" />
     </content>
     <orderEntry type="jdk" jdkName="Remote Python 3.11.2 (sftp://pi@bj.zyfrp.vip:7777/usr/bin/python3)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />

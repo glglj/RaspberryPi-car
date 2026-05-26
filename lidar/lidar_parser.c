@@ -1177,27 +1177,12 @@ static PyObject *__Pyx_GetItemInt_Generic(PyObject *o, PyObject* j);
 static CYTHON_INLINE PyObject *__Pyx_GetItemInt_Fast(PyObject *o, Py_ssize_t i,
                                                      int is_list, int wraparound, int boundscheck);
 
-/* ObjectGetItem.proto */
-#if CYTHON_USE_TYPE_SLOTS
-static CYTHON_INLINE PyObject *__Pyx_PyObject_GetItem(PyObject *obj, PyObject* key);
-#else
-#define __Pyx_PyObject_GetItem(obj, key)  PyObject_GetItem(obj, key)
-#endif
-
 /* PyIntBinop.proto */
 #if !CYTHON_COMPILING_IN_PYPY
-static PyObject* __Pyx_PyInt_AddCObj(PyObject *op1, PyObject *op2, long intval, int inplace, int zerodivision_check);
+static PyObject* __Pyx_PyInt_AddObjC(PyObject *op1, PyObject *op2, long intval, int inplace, int zerodivision_check);
 #else
-#define __Pyx_PyInt_AddCObj(op1, op2, intval, inplace, zerodivision_check)\
+#define __Pyx_PyInt_AddObjC(op1, op2, intval, inplace, zerodivision_check)\
     (inplace ? PyNumber_InPlaceAdd(op1, op2) : PyNumber_Add(op1, op2))
-#endif
-
-/* PyIntBinop.proto */
-#if !CYTHON_COMPILING_IN_PYPY
-static PyObject* __Pyx_PyInt_SubtractObjC(PyObject *op1, PyObject *op2, long intval, int inplace, int zerodivision_check);
-#else
-#define __Pyx_PyInt_SubtractObjC(op1, op2, intval, inplace, zerodivision_check)\
-    (inplace ? PyNumber_InPlaceSubtract(op1, op2) : PyNumber_Subtract(op1, op2))
 #endif
 
 /* ListAppend.proto */
@@ -1328,13 +1313,10 @@ static void __Pyx_AddTraceback(const char *funcname, int c_line,
 static CYTHON_INLINE PyObject* __Pyx_PyInt_From_int(int value);
 
 /* CIntFromPy.proto */
-static CYTHON_INLINE uint8_t __Pyx_PyInt_As_uint8_t(PyObject *);
-
-/* CIntToPy.proto */
-static CYTHON_INLINE PyObject* __Pyx_PyInt_From_uint8_t(uint8_t value);
+static CYTHON_INLINE int __Pyx_PyInt_As_int(PyObject *);
 
 /* CIntFromPy.proto */
-static CYTHON_INLINE int __Pyx_PyInt_As_int(PyObject *);
+static CYTHON_INLINE uint8_t __Pyx_PyInt_As_uint8_t(PyObject *);
 
 /* CIntToPy.proto */
 static CYTHON_INLINE PyObject* __Pyx_PyInt_From_long(long value);
@@ -1374,18 +1356,25 @@ int __pyx_module_is_main_lidar_parser = 0;
 /* Implementation of 'lidar_parser' */
 static PyObject *__pyx_builtin_range;
 static PyObject *__pyx_builtin_TypeError;
-static const char __pyx_k_FSA[] = "FSA";
-static const char __pyx_k_LSA[] = "LSA";
+static const char __pyx_k_Si[] = "Si";
 static const char __pyx_k_LSN[] = "LSN";
 static const char __pyx_k_feed[] = "feed";
 static const char __pyx_k_main[] = "__main__";
 static const char __pyx_k_name[] = "__name__";
 static const char __pyx_k_test[] = "__test__";
+static const char __pyx_k_angle[] = "angle";
 static const char __pyx_k_range[] = "range";
 static const char __pyx_k_reduce[] = "__reduce__";
+static const char __pyx_k_FSA_raw[] = "FSA_raw";
+static const char __pyx_k_LSA_raw[] = "LSA_raw";
+static const char __pyx_k_distance[] = "distance";
 static const char __pyx_k_getstate[] = "__getstate__";
+static const char __pyx_k_high_ref[] = "high_ref";
 static const char __pyx_k_setstate[] = "__setstate__";
 static const char __pyx_k_TypeError[] = "TypeError";
+static const char __pyx_k_angle_fsa[] = "angle_fsa";
+static const char __pyx_k_angle_lsa[] = "angle_lsa";
+static const char __pyx_k_intensity[] = "intensity";
 static const char __pyx_k_reduce_ex[] = "__reduce_ex__";
 static const char __pyx_k_start_idx[] = "start_idx";
 static const char __pyx_k_packet_len[] = "packet_len";
@@ -1395,14 +1384,21 @@ static const char __pyx_k_reduce_cython[] = "__reduce_cython__";
 static const char __pyx_k_setstate_cython[] = "__setstate_cython__";
 static const char __pyx_k_cline_in_traceback[] = "cline_in_traceback";
 static const char __pyx_k_no_default___reduce___due_to_non[] = "no default __reduce__ due to non-trivial __cinit__";
-static PyObject *__pyx_n_u_FSA;
-static PyObject *__pyx_n_u_LSA;
+static PyObject *__pyx_n_u_FSA_raw;
+static PyObject *__pyx_n_u_LSA_raw;
 static PyObject *__pyx_n_u_LSN;
 static PyObject *__pyx_n_s_LidarParser;
+static PyObject *__pyx_n_u_Si;
 static PyObject *__pyx_n_s_TypeError;
+static PyObject *__pyx_n_u_angle;
+static PyObject *__pyx_n_u_angle_fsa;
+static PyObject *__pyx_n_u_angle_lsa;
 static PyObject *__pyx_n_s_cline_in_traceback;
+static PyObject *__pyx_n_u_distance;
 static PyObject *__pyx_n_s_feed;
 static PyObject *__pyx_n_s_getstate;
+static PyObject *__pyx_n_u_high_ref;
+static PyObject *__pyx_n_u_intensity;
 static PyObject *__pyx_n_s_main;
 static PyObject *__pyx_n_s_name;
 static PyObject *__pyx_kp_s_no_default___reduce___due_to_non;
@@ -1423,8 +1419,6 @@ static PyObject *__pyx_pf_12lidar_parser_11LidarParser_6__setstate_cython__(CYTH
 static PyObject *__pyx_tp_new_12lidar_parser_LidarParser(PyTypeObject *t, PyObject *a, PyObject *k); /*proto*/
 static PyObject *__pyx_int_1;
 static PyObject *__pyx_int_2;
-static PyObject *__pyx_int_3;
-static PyObject *__pyx_int_10;
 static PyObject *__pyx_tuple_;
 static PyObject *__pyx_tuple__2;
 /* Late includes */
@@ -1485,8 +1479,8 @@ static int __pyx_pf_12lidar_parser_11LidarParser___cinit__(struct __pyx_obj_12li
  *         self.buf_len = 0
  * 
  *     cpdef list feed(self, bytes data):             # <<<<<<<<<<<<<<
- *         """
- *          UART bytes
+ *         cdef int n = len(data)
+ *         cdef int i = 0
  */
 
 static PyObject *__pyx_pw_12lidar_parser_11LidarParser_3feed(PyObject *__pyx_v_self, PyObject *__pyx_v_data); /*proto*/
@@ -1494,15 +1488,29 @@ static PyObject *__pyx_f_12lidar_parser_11LidarParser_feed(struct __pyx_obj_12li
   int __pyx_v_n;
   int __pyx_v_i;
   PyObject *__pyx_v_result = 0;
-  int __pyx_v_cs_calc;
   int __pyx_v_k;
   int __pyx_v_remaining;
-  PyObject *__pyx_v_j = NULL;
-  PyObject *__pyx_v_lsn = NULL;
-  PyObject *__pyx_v_packet_len = NULL;
-  PyObject *__pyx_v_cs_received = NULL;
-  long __pyx_v_fsa;
-  long __pyx_v_lsa;
+  int __pyx_v_packet_len;
+  int __pyx_v_lsn;
+  int __pyx_v_cs_calc;
+  CYTHON_UNUSED int __pyx_v_cs_received;
+  uint8_t __pyx_v_si_l;
+  uint8_t __pyx_v_si_2nd;
+  uint8_t __pyx_v_si_h;
+  int __pyx_v_distance;
+  int __pyx_v_intensity;
+  int __pyx_v_high_ref;
+  PyObject *__pyx_v_si_list = 0;
+  int __pyx_v_fsa_raw;
+  int __pyx_v_lsa_raw;
+  double __pyx_v_angle_fsa;
+  double __pyx_v_angle_lsa;
+  double __pyx_v_angle_step;
+  double __pyx_v_angle;
+  PyObject *__pyx_v_val = NULL;
+  PyObject *__pyx_v_val1 = NULL;
+  PyObject *__pyx_v_val2 = NULL;
+  PyObject *__pyx_v_base = NULL;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
@@ -1511,15 +1519,14 @@ static PyObject *__pyx_f_12lidar_parser_11LidarParser_feed(struct __pyx_obj_12li
   PyObject *__pyx_t_4 = NULL;
   Py_ssize_t __pyx_t_5;
   int __pyx_t_6;
-  PyObject *(*__pyx_t_7)(PyObject *);
-  uint8_t __pyx_t_8;
-  Py_ssize_t __pyx_t_9;
-  int __pyx_t_10;
-  long __pyx_t_11;
+  int __pyx_t_7;
+  int __pyx_t_8;
+  int __pyx_t_9;
+  uint8_t __pyx_t_10;
+  int __pyx_t_11;
   long __pyx_t_12;
-  int __pyx_t_13;
+  long __pyx_t_13;
   int __pyx_t_14;
-  Py_ssize_t __pyx_t_15;
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
@@ -1572,616 +1579,764 @@ static PyObject *__pyx_f_12lidar_parser_11LidarParser_feed(struct __pyx_obj_12li
     #endif
   }
 
-  /* "lidar_parser.pyx":20
- *         : list of dict dict  LSN/FSA/LSA
- *         """
+  /* "lidar_parser.pyx":16
+ * 
+ *     cpdef list feed(self, bytes data):
  *         cdef int n = len(data)             # <<<<<<<<<<<<<<
  *         cdef int i = 0
  *         cdef list result = []
  */
   if (unlikely(__pyx_v_data == Py_None)) {
     PyErr_SetString(PyExc_TypeError, "object of type 'NoneType' has no len()");
-    __PYX_ERR(0, 20, __pyx_L1_error)
+    __PYX_ERR(0, 16, __pyx_L1_error)
   }
-  __pyx_t_5 = PyBytes_GET_SIZE(__pyx_v_data); if (unlikely(__pyx_t_5 == ((Py_ssize_t)-1))) __PYX_ERR(0, 20, __pyx_L1_error)
+  __pyx_t_5 = PyBytes_GET_SIZE(__pyx_v_data); if (unlikely(__pyx_t_5 == ((Py_ssize_t)-1))) __PYX_ERR(0, 16, __pyx_L1_error)
   __pyx_v_n = __pyx_t_5;
 
-  /* "lidar_parser.pyx":21
- *         """
+  /* "lidar_parser.pyx":17
+ *     cpdef list feed(self, bytes data):
  *         cdef int n = len(data)
  *         cdef int i = 0             # <<<<<<<<<<<<<<
  *         cdef list result = []
- *         cdef int cs_calc = 0
+ *         cdef int k, remaining, packet_len, lsn
  */
   __pyx_v_i = 0;
 
-  /* "lidar_parser.pyx":22
+  /* "lidar_parser.pyx":18
  *         cdef int n = len(data)
  *         cdef int i = 0
  *         cdef list result = []             # <<<<<<<<<<<<<<
- *         cdef int cs_calc = 0
- *         cdef int k
+ *         cdef int k, remaining, packet_len, lsn
+ *         cdef int cs_calc, cs_received
  */
-  __pyx_t_1 = PyList_New(0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 22, __pyx_L1_error)
+  __pyx_t_1 = PyList_New(0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 18, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_v_result = ((PyObject*)__pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "lidar_parser.pyx":23
- *         cdef int i = 0
- *         cdef list result = []
- *         cdef int cs_calc = 0             # <<<<<<<<<<<<<<
- *         cdef int k
- *         cdef int remaining
- */
-  __pyx_v_cs_calc = 0;
-
-  /* "lidar_parser.pyx":27
- *         cdef int remaining
+  /* "lidar_parser.pyx":28
+ * 
  *         #  buffer
  *         if self.buf_len + n > 8192:             # <<<<<<<<<<<<<<
- *             self.buf_len = 0  #
- *         for j in range(n):
+ *             self.buf_len = 0
+ *         for k in range(n):
  */
   __pyx_t_6 = (((__pyx_v_self->buf_len + __pyx_v_n) > 0x2000) != 0);
   if (__pyx_t_6) {
 
-    /* "lidar_parser.pyx":28
+    /* "lidar_parser.pyx":29
  *         #  buffer
  *         if self.buf_len + n > 8192:
- *             self.buf_len = 0  #             # <<<<<<<<<<<<<<
- *         for j in range(n):
- *             self.buffer[self.buf_len + j] = data[j]
+ *             self.buf_len = 0             # <<<<<<<<<<<<<<
+ *         for k in range(n):
+ *             self.buffer[self.buf_len + k] = data[k]
  */
     __pyx_v_self->buf_len = 0;
 
-    /* "lidar_parser.pyx":27
- *         cdef int remaining
+    /* "lidar_parser.pyx":28
+ * 
  *         #  buffer
  *         if self.buf_len + n > 8192:             # <<<<<<<<<<<<<<
- *             self.buf_len = 0  #
- *         for j in range(n):
+ *             self.buf_len = 0
+ *         for k in range(n):
  */
   }
 
-  /* "lidar_parser.pyx":29
+  /* "lidar_parser.pyx":30
  *         if self.buf_len + n > 8192:
- *             self.buf_len = 0  #
- *         for j in range(n):             # <<<<<<<<<<<<<<
- *             self.buffer[self.buf_len + j] = data[j]
+ *             self.buf_len = 0
+ *         for k in range(n):             # <<<<<<<<<<<<<<
+ *             self.buffer[self.buf_len + k] = data[k]
  *         self.buf_len += n
  */
-  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_n); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 29, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_builtin_range, __pyx_t_1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 29, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  if (likely(PyList_CheckExact(__pyx_t_2)) || PyTuple_CheckExact(__pyx_t_2)) {
-    __pyx_t_1 = __pyx_t_2; __Pyx_INCREF(__pyx_t_1); __pyx_t_5 = 0;
-    __pyx_t_7 = NULL;
-  } else {
-    __pyx_t_5 = -1; __pyx_t_1 = PyObject_GetIter(__pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 29, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_7 = Py_TYPE(__pyx_t_1)->tp_iternext; if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 29, __pyx_L1_error)
-  }
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  for (;;) {
-    if (likely(!__pyx_t_7)) {
-      if (likely(PyList_CheckExact(__pyx_t_1))) {
-        if (__pyx_t_5 >= PyList_GET_SIZE(__pyx_t_1)) break;
-        #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-        __pyx_t_2 = PyList_GET_ITEM(__pyx_t_1, __pyx_t_5); __Pyx_INCREF(__pyx_t_2); __pyx_t_5++; if (unlikely(0 < 0)) __PYX_ERR(0, 29, __pyx_L1_error)
-        #else
-        __pyx_t_2 = PySequence_ITEM(__pyx_t_1, __pyx_t_5); __pyx_t_5++; if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 29, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_2);
-        #endif
-      } else {
-        if (__pyx_t_5 >= PyTuple_GET_SIZE(__pyx_t_1)) break;
-        #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-        __pyx_t_2 = PyTuple_GET_ITEM(__pyx_t_1, __pyx_t_5); __Pyx_INCREF(__pyx_t_2); __pyx_t_5++; if (unlikely(0 < 0)) __PYX_ERR(0, 29, __pyx_L1_error)
-        #else
-        __pyx_t_2 = PySequence_ITEM(__pyx_t_1, __pyx_t_5); __pyx_t_5++; if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 29, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_2);
-        #endif
-      }
-    } else {
-      __pyx_t_2 = __pyx_t_7(__pyx_t_1);
-      if (unlikely(!__pyx_t_2)) {
-        PyObject* exc_type = PyErr_Occurred();
-        if (exc_type) {
-          if (likely(__Pyx_PyErr_GivenExceptionMatches(exc_type, PyExc_StopIteration))) PyErr_Clear();
-          else __PYX_ERR(0, 29, __pyx_L1_error)
-        }
-        break;
-      }
-      __Pyx_GOTREF(__pyx_t_2);
-    }
-    __Pyx_XDECREF_SET(__pyx_v_j, __pyx_t_2);
-    __pyx_t_2 = 0;
+  __pyx_t_7 = __pyx_v_n;
+  __pyx_t_8 = __pyx_t_7;
+  for (__pyx_t_9 = 0; __pyx_t_9 < __pyx_t_8; __pyx_t_9+=1) {
+    __pyx_v_k = __pyx_t_9;
 
-    /* "lidar_parser.pyx":30
- *             self.buf_len = 0  #
- *         for j in range(n):
- *             self.buffer[self.buf_len + j] = data[j]             # <<<<<<<<<<<<<<
+    /* "lidar_parser.pyx":31
+ *             self.buf_len = 0
+ *         for k in range(n):
+ *             self.buffer[self.buf_len + k] = data[k]             # <<<<<<<<<<<<<<
  *         self.buf_len += n
  * 
  */
-    __pyx_t_2 = __Pyx_PyObject_GetItem(__pyx_v_data, __pyx_v_j); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 30, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_2);
-    __pyx_t_8 = __Pyx_PyInt_As_uint8_t(__pyx_t_2); if (unlikely((__pyx_t_8 == ((uint8_t)-1)) && PyErr_Occurred())) __PYX_ERR(0, 30, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __pyx_t_2 = __Pyx_PyInt_From_int(__pyx_v_self->buf_len); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 30, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_2);
-    __pyx_t_3 = PyNumber_Add(__pyx_t_2, __pyx_v_j); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 30, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_3);
-    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __pyx_t_9 = __Pyx_PyIndex_AsSsize_t(__pyx_t_3); if (unlikely((__pyx_t_9 == (Py_ssize_t)-1) && PyErr_Occurred())) __PYX_ERR(0, 30, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    (__pyx_v_self->buffer[__pyx_t_9]) = __pyx_t_8;
-
-    /* "lidar_parser.pyx":29
- *         if self.buf_len + n > 8192:
- *             self.buf_len = 0  #
- *         for j in range(n):             # <<<<<<<<<<<<<<
- *             self.buffer[self.buf_len + j] = data[j]
- *         self.buf_len += n
- */
+    __pyx_t_1 = __Pyx_GetItemInt(__pyx_v_data, __pyx_v_k, int, 1, __Pyx_PyInt_From_int, 0, 0, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 31, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_1);
+    __pyx_t_10 = __Pyx_PyInt_As_uint8_t(__pyx_t_1); if (unlikely((__pyx_t_10 == ((uint8_t)-1)) && PyErr_Occurred())) __PYX_ERR(0, 31, __pyx_L1_error)
+    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+    (__pyx_v_self->buffer[(__pyx_v_self->buf_len + __pyx_v_k)]) = __pyx_t_10;
   }
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "lidar_parser.pyx":31
- *         for j in range(n):
- *             self.buffer[self.buf_len + j] = data[j]
+  /* "lidar_parser.pyx":32
+ *         for k in range(n):
+ *             self.buffer[self.buf_len + k] = data[k]
  *         self.buf_len += n             # <<<<<<<<<<<<<<
  * 
- *         #
+ *         while i + 10 <= self.buf_len:
  */
   __pyx_v_self->buf_len = (__pyx_v_self->buf_len + __pyx_v_n);
 
   /* "lidar_parser.pyx":34
+ *         self.buf_len += n
  * 
- *         #
- *         while i + 10 <= self.buf_len:  #             # <<<<<<<<<<<<<<
- *             #  0x55AA ()
- *             if self.buffer[i] != 0x55 or self.buffer[i+1] != 0xAA:
+ *         while i + 10 <= self.buf_len:             # <<<<<<<<<<<<<<
+ *             if self.buffer[i] != 0xAA or self.buffer[i+1] != 0x55:
+ *                 i += 1
  */
   while (1) {
     __pyx_t_6 = (((__pyx_v_i + 10) <= __pyx_v_self->buf_len) != 0);
     if (!__pyx_t_6) break;
 
-    /* "lidar_parser.pyx":36
- *         while i + 10 <= self.buf_len:  #
- *             #  0x55AA ()
- *             if self.buffer[i] != 0x55 or self.buffer[i+1] != 0xAA:             # <<<<<<<<<<<<<<
+    /* "lidar_parser.pyx":35
+ * 
+ *         while i + 10 <= self.buf_len:
+ *             if self.buffer[i] != 0xAA or self.buffer[i+1] != 0x55:             # <<<<<<<<<<<<<<
  *                 i += 1
  *                 continue
  */
-    __pyx_t_10 = (((__pyx_v_self->buffer[__pyx_v_i]) != 0x55) != 0);
-    if (!__pyx_t_10) {
+    __pyx_t_11 = (((__pyx_v_self->buffer[__pyx_v_i]) != 0xAA) != 0);
+    if (!__pyx_t_11) {
     } else {
-      __pyx_t_6 = __pyx_t_10;
+      __pyx_t_6 = __pyx_t_11;
       goto __pyx_L9_bool_binop_done;
     }
-    __pyx_t_10 = (((__pyx_v_self->buffer[(__pyx_v_i + 1)]) != 0xAA) != 0);
-    __pyx_t_6 = __pyx_t_10;
+    __pyx_t_11 = (((__pyx_v_self->buffer[(__pyx_v_i + 1)]) != 0x55) != 0);
+    __pyx_t_6 = __pyx_t_11;
     __pyx_L9_bool_binop_done:;
     if (__pyx_t_6) {
 
-      /* "lidar_parser.pyx":37
- *             #  0x55AA ()
- *             if self.buffer[i] != 0x55 or self.buffer[i+1] != 0xAA:
+      /* "lidar_parser.pyx":36
+ *         while i + 10 <= self.buf_len:
+ *             if self.buffer[i] != 0xAA or self.buffer[i+1] != 0x55:
  *                 i += 1             # <<<<<<<<<<<<<<
  *                 continue
  * 
  */
       __pyx_v_i = (__pyx_v_i + 1);
 
-      /* "lidar_parser.pyx":38
- *             if self.buffer[i] != 0x55 or self.buffer[i+1] != 0xAA:
+      /* "lidar_parser.pyx":37
+ *             if self.buffer[i] != 0xAA or self.buffer[i+1] != 0x55:
  *                 i += 1
  *                 continue             # <<<<<<<<<<<<<<
  * 
- *             lsn = self.buffer[i+3]  #
+ *             lsn = self.buffer[i+3]
  */
       goto __pyx_L6_continue;
 
-      /* "lidar_parser.pyx":36
- *         while i + 10 <= self.buf_len:  #
- *             #  0x55AA ()
- *             if self.buffer[i] != 0x55 or self.buffer[i+1] != 0xAA:             # <<<<<<<<<<<<<<
+      /* "lidar_parser.pyx":35
+ * 
+ *         while i + 10 <= self.buf_len:
+ *             if self.buffer[i] != 0xAA or self.buffer[i+1] != 0x55:             # <<<<<<<<<<<<<<
  *                 i += 1
  *                 continue
  */
     }
 
-    /* "lidar_parser.pyx":40
+    /* "lidar_parser.pyx":39
  *                 continue
  * 
- *             lsn = self.buffer[i+3]  #             # <<<<<<<<<<<<<<
- *             packet_len = 10 + lsn*3  # +LSN+Si 3B
- * 
+ *             lsn = self.buffer[i+3]             # <<<<<<<<<<<<<<
+ *             packet_len = 10 + lsn*3
+ *             if i + packet_len > self.buf_len:
  */
-    __pyx_t_1 = __Pyx_PyInt_From_uint8_t((__pyx_v_self->buffer[(__pyx_v_i + 3)])); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 40, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_1);
-    __Pyx_XDECREF_SET(__pyx_v_lsn, __pyx_t_1);
-    __pyx_t_1 = 0;
+    __pyx_v_lsn = (__pyx_v_self->buffer[(__pyx_v_i + 3)]);
+
+    /* "lidar_parser.pyx":40
+ * 
+ *             lsn = self.buffer[i+3]
+ *             packet_len = 10 + lsn*3             # <<<<<<<<<<<<<<
+ *             if i + packet_len > self.buf_len:
+ *                 break
+ */
+    __pyx_v_packet_len = (10 + (__pyx_v_lsn * 3));
 
     /* "lidar_parser.pyx":41
- * 
- *             lsn = self.buffer[i+3]  #
- *             packet_len = 10 + lsn*3  # +LSN+Si 3B             # <<<<<<<<<<<<<<
- * 
- *             if i + packet_len > self.buf_len:
- */
-    __pyx_t_1 = PyNumber_Multiply(__pyx_v_lsn, __pyx_int_3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 41, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_3 = __Pyx_PyInt_AddCObj(__pyx_int_10, __pyx_t_1, 10, 0, 0); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 41, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_3);
-    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    __Pyx_XDECREF_SET(__pyx_v_packet_len, __pyx_t_3);
-    __pyx_t_3 = 0;
-
-    /* "lidar_parser.pyx":43
- *             packet_len = 10 + lsn*3  # +LSN+Si 3B
- * 
+ *             lsn = self.buffer[i+3]
+ *             packet_len = 10 + lsn*3
  *             if i + packet_len > self.buf_len:             # <<<<<<<<<<<<<<
- *                 break  #
+ *                 break
  * 
  */
-    __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_v_i); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 43, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_3);
-    __pyx_t_1 = PyNumber_Add(__pyx_t_3, __pyx_v_packet_len); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 43, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_1);
-    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_v_self->buf_len); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 43, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_3);
-    __pyx_t_2 = PyObject_RichCompare(__pyx_t_1, __pyx_t_3, Py_GT); __Pyx_XGOTREF(__pyx_t_2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 43, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    __pyx_t_6 = __Pyx_PyObject_IsTrue(__pyx_t_2); if (unlikely(__pyx_t_6 < 0)) __PYX_ERR(0, 43, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+    __pyx_t_6 = (((__pyx_v_i + __pyx_v_packet_len) > __pyx_v_self->buf_len) != 0);
     if (__pyx_t_6) {
 
-      /* "lidar_parser.pyx":44
- * 
+      /* "lidar_parser.pyx":42
+ *             packet_len = 10 + lsn*3
  *             if i + packet_len > self.buf_len:
- *                 break  #             # <<<<<<<<<<<<<<
+ *                 break             # <<<<<<<<<<<<<<
  * 
- *             # ---  CS ---
+ *             # --- CS  ---
  */
       goto __pyx_L7_break;
 
-      /* "lidar_parser.pyx":43
- *             packet_len = 10 + lsn*3  # +LSN+Si 3B
- * 
+      /* "lidar_parser.pyx":41
+ *             lsn = self.buffer[i+3]
+ *             packet_len = 10 + lsn*3
  *             if i + packet_len > self.buf_len:             # <<<<<<<<<<<<<<
- *                 break  #
+ *                 break
  * 
  */
     }
 
-    /* "lidar_parser.pyx":48
- *             # ---  CS ---
+    /* "lidar_parser.pyx":45
  * 
- *             for k in range(packet_len - 2):  # 2 CS             # <<<<<<<<<<<<<<
- *                 cs_calc ^= self.buffer[i+k]
- *             cs_received = (self.buffer[i+packet_len-2] | (self.buffer[i+packet_len-1]<<8))
+ *             # --- CS  ---
+ *             cs_calc = 0             # <<<<<<<<<<<<<<
+ *             # CSL:  M&T  LSA XOR
+ *             for k in range(0, 8, 2):
  */
-    __pyx_t_2 = __Pyx_PyInt_SubtractObjC(__pyx_v_packet_len, __pyx_int_2, 2, 0, 0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 48, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_2);
-    __pyx_t_11 = __Pyx_PyInt_As_long(__pyx_t_2); if (unlikely((__pyx_t_11 == (long)-1) && PyErr_Occurred())) __PYX_ERR(0, 48, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __pyx_t_12 = __pyx_t_11;
-    for (__pyx_t_13 = 0; __pyx_t_13 < __pyx_t_12; __pyx_t_13+=1) {
-      __pyx_v_k = __pyx_t_13;
+    __pyx_v_cs_calc = 0;
+
+    /* "lidar_parser.pyx":47
+ *             cs_calc = 0
+ *             # CSL:  M&T  LSA XOR
+ *             for k in range(0, 8, 2):             # <<<<<<<<<<<<<<
+ *                 val = self.buffer[i + k] | (self.buffer[i + k + 1] << 8)
+ *                 cs_calc ^= val
+ */
+    for (__pyx_t_7 = 0; __pyx_t_7 < 8; __pyx_t_7+=2) {
+      __pyx_v_k = __pyx_t_7;
+
+      /* "lidar_parser.pyx":48
+ *             # CSL:  M&T  LSA XOR
+ *             for k in range(0, 8, 2):
+ *                 val = self.buffer[i + k] | (self.buffer[i + k + 1] << 8)             # <<<<<<<<<<<<<<
+ *                 cs_calc ^= val
+ * 
+ */
+      __pyx_t_1 = __Pyx_PyInt_From_long(((__pyx_v_self->buffer[(__pyx_v_i + __pyx_v_k)]) | ((__pyx_v_self->buffer[((__pyx_v_i + __pyx_v_k) + 1)]) << 8))); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 48, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_1);
+      __Pyx_XDECREF_SET(__pyx_v_val, __pyx_t_1);
+      __pyx_t_1 = 0;
 
       /* "lidar_parser.pyx":49
+ *             for k in range(0, 8, 2):
+ *                 val = self.buffer[i + k] | (self.buffer[i + k + 1] << 8)
+ *                 cs_calc ^= val             # <<<<<<<<<<<<<<
  * 
- *             for k in range(packet_len - 2):  # 2 CS
- *                 cs_calc ^= self.buffer[i+k]             # <<<<<<<<<<<<<<
- *             cs_received = (self.buffer[i+packet_len-2] | (self.buffer[i+packet_len-1]<<8))
- *             if cs_calc != cs_received:
+ *             # CSH: 16
  */
-      __pyx_v_cs_calc = (__pyx_v_cs_calc ^ (__pyx_v_self->buffer[(__pyx_v_i + __pyx_v_k)]));
+      __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_cs_calc); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 49, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_1);
+      __pyx_t_2 = PyNumber_InPlaceXor(__pyx_t_1, __pyx_v_val); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 49, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_2);
+      __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+      __pyx_t_8 = __Pyx_PyInt_As_int(__pyx_t_2); if (unlikely((__pyx_t_8 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 49, __pyx_L1_error)
+      __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+      __pyx_v_cs_calc = __pyx_t_8;
     }
 
-    /* "lidar_parser.pyx":50
- *             for k in range(packet_len - 2):  # 2 CS
- *                 cs_calc ^= self.buffer[i+k]
- *             cs_received = (self.buffer[i+packet_len-2] | (self.buffer[i+packet_len-1]<<8))             # <<<<<<<<<<<<<<
- *             if cs_calc != cs_received:
- *                 #
+    /* "lidar_parser.pyx":52
+ * 
+ *             # CSH: 16
+ *             for k in range(10, 10 + lsn * 3, 3):             # <<<<<<<<<<<<<<
+ *                 val1 = self.buffer[i + k] | (self.buffer[i + k + 1] << 8)  # Si_L, Si_2nd
+ *                 val2 = self.buffer[i + k + 2] | (0x00 << 8)  # Si_H, 80
  */
-    __pyx_t_2 = __Pyx_PyInt_From_int(__pyx_v_i); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 50, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_2);
-    __pyx_t_3 = PyNumber_Add(__pyx_t_2, __pyx_v_packet_len); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 50, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_3);
-    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __pyx_t_2 = __Pyx_PyInt_SubtractObjC(__pyx_t_3, __pyx_int_2, 2, 0, 0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 50, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_2);
-    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    __pyx_t_5 = __Pyx_PyIndex_AsSsize_t(__pyx_t_2); if (unlikely((__pyx_t_5 == (Py_ssize_t)-1) && PyErr_Occurred())) __PYX_ERR(0, 50, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __pyx_t_2 = __Pyx_PyInt_From_int(__pyx_v_i); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 50, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_2);
-    __pyx_t_3 = PyNumber_Add(__pyx_t_2, __pyx_v_packet_len); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 50, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_3);
-    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __pyx_t_2 = __Pyx_PyInt_SubtractObjC(__pyx_t_3, __pyx_int_1, 1, 0, 0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 50, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_2);
-    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    __pyx_t_9 = __Pyx_PyIndex_AsSsize_t(__pyx_t_2); if (unlikely((__pyx_t_9 == (Py_ssize_t)-1) && PyErr_Occurred())) __PYX_ERR(0, 50, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __pyx_t_2 = __Pyx_PyInt_From_long(((__pyx_v_self->buffer[__pyx_t_5]) | ((__pyx_v_self->buffer[__pyx_t_9]) << 8))); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 50, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_2);
-    __Pyx_XDECREF_SET(__pyx_v_cs_received, __pyx_t_2);
-    __pyx_t_2 = 0;
-
-    /* "lidar_parser.pyx":51
- *                 cs_calc ^= self.buffer[i+k]
- *             cs_received = (self.buffer[i+packet_len-2] | (self.buffer[i+packet_len-1]<<8))
- *             if cs_calc != cs_received:             # <<<<<<<<<<<<<<
- *                 #
- *                 i += 1
- */
-    __pyx_t_2 = __Pyx_PyInt_From_int(__pyx_v_cs_calc); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 51, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_2);
-    __pyx_t_3 = PyObject_RichCompare(__pyx_t_2, __pyx_v_cs_received, Py_NE); __Pyx_XGOTREF(__pyx_t_3); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 51, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __pyx_t_6 = __Pyx_PyObject_IsTrue(__pyx_t_3); if (unlikely(__pyx_t_6 < 0)) __PYX_ERR(0, 51, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    if (__pyx_t_6) {
+    __pyx_t_12 = (10 + (__pyx_v_lsn * 3));
+    __pyx_t_13 = __pyx_t_12;
+    for (__pyx_t_7 = 10; __pyx_t_7 < __pyx_t_13; __pyx_t_7+=3) {
+      __pyx_v_k = __pyx_t_7;
 
       /* "lidar_parser.pyx":53
- *             if cs_calc != cs_received:
- *                 #
- *                 i += 1             # <<<<<<<<<<<<<<
- *                 continue
- * 
+ *             # CSH: 16
+ *             for k in range(10, 10 + lsn * 3, 3):
+ *                 val1 = self.buffer[i + k] | (self.buffer[i + k + 1] << 8)  # Si_L, Si_2nd             # <<<<<<<<<<<<<<
+ *                 val2 = self.buffer[i + k + 2] | (0x00 << 8)  # Si_H, 80
+ *                 cs_calc ^= val1
  */
-      __pyx_v_i = (__pyx_v_i + 1);
+      __pyx_t_2 = __Pyx_PyInt_From_long(((__pyx_v_self->buffer[(__pyx_v_i + __pyx_v_k)]) | ((__pyx_v_self->buffer[((__pyx_v_i + __pyx_v_k) + 1)]) << 8))); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 53, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_2);
+      __Pyx_XDECREF_SET(__pyx_v_val1, __pyx_t_2);
+      __pyx_t_2 = 0;
 
       /* "lidar_parser.pyx":54
- *                 #
- *                 i += 1
- *                 continue             # <<<<<<<<<<<<<<
- * 
- *             # ---  ---
+ *             for k in range(10, 10 + lsn * 3, 3):
+ *                 val1 = self.buffer[i + k] | (self.buffer[i + k + 1] << 8)  # Si_L, Si_2nd
+ *                 val2 = self.buffer[i + k + 2] | (0x00 << 8)  # Si_H, 80             # <<<<<<<<<<<<<<
+ *                 cs_calc ^= val1
+ *                 cs_calc ^= val2
  */
-      goto __pyx_L6_continue;
+      __pyx_t_2 = __Pyx_PyInt_From_long(((__pyx_v_self->buffer[((__pyx_v_i + __pyx_v_k) + 2)]) | 0)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 54, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_2);
+      __Pyx_XDECREF_SET(__pyx_v_val2, __pyx_t_2);
+      __pyx_t_2 = 0;
 
-      /* "lidar_parser.pyx":51
- *                 cs_calc ^= self.buffer[i+k]
- *             cs_received = (self.buffer[i+packet_len-2] | (self.buffer[i+packet_len-1]<<8))
- *             if cs_calc != cs_received:             # <<<<<<<<<<<<<<
- *                 #
- *                 i += 1
+      /* "lidar_parser.pyx":55
+ *                 val1 = self.buffer[i + k] | (self.buffer[i + k + 1] << 8)  # Si_L, Si_2nd
+ *                 val2 = self.buffer[i + k + 2] | (0x00 << 8)  # Si_H, 80
+ *                 cs_calc ^= val1             # <<<<<<<<<<<<<<
+ *                 cs_calc ^= val2
+ * 
  */
+      __pyx_t_2 = __Pyx_PyInt_From_int(__pyx_v_cs_calc); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 55, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_2);
+      __pyx_t_1 = PyNumber_InPlaceXor(__pyx_t_2, __pyx_v_val1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 55, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_1);
+      __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+      __pyx_t_8 = __Pyx_PyInt_As_int(__pyx_t_1); if (unlikely((__pyx_t_8 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 55, __pyx_L1_error)
+      __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+      __pyx_v_cs_calc = __pyx_t_8;
+
+      /* "lidar_parser.pyx":56
+ *                 val2 = self.buffer[i + k + 2] | (0x00 << 8)  # Si_H, 80
+ *                 cs_calc ^= val1
+ *                 cs_calc ^= val2             # <<<<<<<<<<<<<<
+ * 
+ *             # 16
+ */
+      __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_cs_calc); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 56, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_1);
+      __pyx_t_2 = PyNumber_InPlaceXor(__pyx_t_1, __pyx_v_val2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 56, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_2);
+      __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+      __pyx_t_8 = __Pyx_PyInt_As_int(__pyx_t_2); if (unlikely((__pyx_t_8 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 56, __pyx_L1_error)
+      __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+      __pyx_v_cs_calc = __pyx_t_8;
     }
 
-    /* "lidar_parser.pyx":57
+    /* "lidar_parser.pyx":59
  * 
- *             # ---  ---
- *             fsa = self.buffer[i+4] | (self.buffer[i+5]<<8)             # <<<<<<<<<<<<<<
- *             lsa = self.buffer[i+6] | (self.buffer[i+7]<<8)
- *             result.append({
+ *             # 16
+ *             cs_calc &= 0xFFFF             # <<<<<<<<<<<<<<
+ *             cs_received = self.buffer[i + 8] | (self.buffer[i + 9] << 8)
+ * 
  */
-    __pyx_v_fsa = ((__pyx_v_self->buffer[(__pyx_v_i + 4)]) | ((__pyx_v_self->buffer[(__pyx_v_i + 5)]) << 8));
-
-    /* "lidar_parser.pyx":58
- *             # ---  ---
- *             fsa = self.buffer[i+4] | (self.buffer[i+5]<<8)
- *             lsa = self.buffer[i+6] | (self.buffer[i+7]<<8)             # <<<<<<<<<<<<<<
- *             result.append({
- *                 "LSN": lsn,
- */
-    __pyx_v_lsa = ((__pyx_v_self->buffer[(__pyx_v_i + 6)]) | ((__pyx_v_self->buffer[(__pyx_v_i + 7)]) << 8));
+    __pyx_v_cs_calc = (__pyx_v_cs_calc & 0xFFFF);
 
     /* "lidar_parser.pyx":60
- *             lsa = self.buffer[i+6] | (self.buffer[i+7]<<8)
- *             result.append({
- *                 "LSN": lsn,             # <<<<<<<<<<<<<<
- *                 "FSA": fsa,
- *                 "LSA": lsa,
- */
-    __pyx_t_3 = __Pyx_PyDict_NewPresized(5); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 60, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_3);
-    if (PyDict_SetItem(__pyx_t_3, __pyx_n_u_LSN, __pyx_v_lsn) < 0) __PYX_ERR(0, 60, __pyx_L1_error)
-
-    /* "lidar_parser.pyx":61
- *             result.append({
- *                 "LSN": lsn,
- *                 "FSA": fsa,             # <<<<<<<<<<<<<<
- *                 "LSA": lsa,
- *                 "start_idx": i,
- */
-    __pyx_t_2 = __Pyx_PyInt_From_long(__pyx_v_fsa); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 61, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_2);
-    if (PyDict_SetItem(__pyx_t_3, __pyx_n_u_FSA, __pyx_t_2) < 0) __PYX_ERR(0, 60, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-
-    /* "lidar_parser.pyx":62
- *                 "LSN": lsn,
- *                 "FSA": fsa,
- *                 "LSA": lsa,             # <<<<<<<<<<<<<<
- *                 "start_idx": i,
- *                 "packet_len": packet_len
- */
-    __pyx_t_2 = __Pyx_PyInt_From_long(__pyx_v_lsa); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 62, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_2);
-    if (PyDict_SetItem(__pyx_t_3, __pyx_n_u_LSA, __pyx_t_2) < 0) __PYX_ERR(0, 60, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-
-    /* "lidar_parser.pyx":63
- *                 "FSA": fsa,
- *                 "LSA": lsa,
- *                 "start_idx": i,             # <<<<<<<<<<<<<<
- *                 "packet_len": packet_len
- *             })
- */
-    __pyx_t_2 = __Pyx_PyInt_From_int(__pyx_v_i); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 63, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_2);
-    if (PyDict_SetItem(__pyx_t_3, __pyx_n_u_start_idx, __pyx_t_2) < 0) __PYX_ERR(0, 60, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-
-    /* "lidar_parser.pyx":64
- *                 "LSA": lsa,
- *                 "start_idx": i,
- *                 "packet_len": packet_len             # <<<<<<<<<<<<<<
- *             })
+ *             # 16
+ *             cs_calc &= 0xFFFF
+ *             cs_received = self.buffer[i + 8] | (self.buffer[i + 9] << 8)             # <<<<<<<<<<<<<<
  * 
+ *             # if cs_calc != cs_received:
  */
-    if (PyDict_SetItem(__pyx_t_3, __pyx_n_u_packet_len, __pyx_v_packet_len) < 0) __PYX_ERR(0, 60, __pyx_L1_error)
+    __pyx_v_cs_received = ((__pyx_v_self->buffer[(__pyx_v_i + 8)]) | ((__pyx_v_self->buffer[(__pyx_v_i + 9)]) << 8));
 
-    /* "lidar_parser.pyx":59
- *             fsa = self.buffer[i+4] | (self.buffer[i+5]<<8)
- *             lsa = self.buffer[i+6] | (self.buffer[i+7]<<8)
- *             result.append({             # <<<<<<<<<<<<<<
- *                 "LSN": lsn,
- *                 "FSA": fsa,
+    /* "lidar_parser.pyx":67
+ * 
+ *             # ---  ---
+ *             fsa_raw = self.buffer[i+4] | (self.buffer[i+5]<<8)             # <<<<<<<<<<<<<<
+ *             lsa_raw = self.buffer[i+6] | (self.buffer[i+7]<<8)
+ *             angle_fsa = (fsa_raw >> 1) / 64.0
  */
-    __pyx_t_14 = __Pyx_PyList_Append(__pyx_v_result, __pyx_t_3); if (unlikely(__pyx_t_14 == ((int)-1))) __PYX_ERR(0, 59, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+    __pyx_v_fsa_raw = ((__pyx_v_self->buffer[(__pyx_v_i + 4)]) | ((__pyx_v_self->buffer[(__pyx_v_i + 5)]) << 8));
 
     /* "lidar_parser.pyx":68
+ *             # ---  ---
+ *             fsa_raw = self.buffer[i+4] | (self.buffer[i+5]<<8)
+ *             lsa_raw = self.buffer[i+6] | (self.buffer[i+7]<<8)             # <<<<<<<<<<<<<<
+ *             angle_fsa = (fsa_raw >> 1) / 64.0
+ *             angle_lsa = (lsa_raw >> 1) / 64.0
+ */
+    __pyx_v_lsa_raw = ((__pyx_v_self->buffer[(__pyx_v_i + 6)]) | ((__pyx_v_self->buffer[(__pyx_v_i + 7)]) << 8));
+
+    /* "lidar_parser.pyx":69
+ *             fsa_raw = self.buffer[i+4] | (self.buffer[i+5]<<8)
+ *             lsa_raw = self.buffer[i+6] | (self.buffer[i+7]<<8)
+ *             angle_fsa = (fsa_raw >> 1) / 64.0             # <<<<<<<<<<<<<<
+ *             angle_lsa = (lsa_raw >> 1) / 64.0
+ *             if lsn > 1:
+ */
+    __pyx_v_angle_fsa = (((double)(__pyx_v_fsa_raw >> 1)) / 64.0);
+
+    /* "lidar_parser.pyx":70
+ *             lsa_raw = self.buffer[i+6] | (self.buffer[i+7]<<8)
+ *             angle_fsa = (fsa_raw >> 1) / 64.0
+ *             angle_lsa = (lsa_raw >> 1) / 64.0             # <<<<<<<<<<<<<<
+ *             if lsn > 1:
+ *                 angle_step = (angle_lsa - angle_fsa) / (lsn - 1)
+ */
+    __pyx_v_angle_lsa = (((double)(__pyx_v_lsa_raw >> 1)) / 64.0);
+
+    /* "lidar_parser.pyx":71
+ *             angle_fsa = (fsa_raw >> 1) / 64.0
+ *             angle_lsa = (lsa_raw >> 1) / 64.0
+ *             if lsn > 1:             # <<<<<<<<<<<<<<
+ *                 angle_step = (angle_lsa - angle_fsa) / (lsn - 1)
+ *             else:
+ */
+    __pyx_t_6 = ((__pyx_v_lsn > 1) != 0);
+    if (__pyx_t_6) {
+
+      /* "lidar_parser.pyx":72
+ *             angle_lsa = (lsa_raw >> 1) / 64.0
+ *             if lsn > 1:
+ *                 angle_step = (angle_lsa - angle_fsa) / (lsn - 1)             # <<<<<<<<<<<<<<
+ *             else:
+ *                 angle_step = 0
+ */
+      __pyx_v_angle_step = ((__pyx_v_angle_lsa - __pyx_v_angle_fsa) / ((double)(__pyx_v_lsn - 1)));
+
+      /* "lidar_parser.pyx":71
+ *             angle_fsa = (fsa_raw >> 1) / 64.0
+ *             angle_lsa = (lsa_raw >> 1) / 64.0
+ *             if lsn > 1:             # <<<<<<<<<<<<<<
+ *                 angle_step = (angle_lsa - angle_fsa) / (lsn - 1)
+ *             else:
+ */
+      goto __pyx_L16;
+    }
+
+    /* "lidar_parser.pyx":74
+ *                 angle_step = (angle_lsa - angle_fsa) / (lsn - 1)
+ *             else:
+ *                 angle_step = 0             # <<<<<<<<<<<<<<
  * 
- *             #
+ *             si_list = []
+ */
+    /*else*/ {
+      __pyx_v_angle_step = 0.0;
+    }
+    __pyx_L16:;
+
+    /* "lidar_parser.pyx":76
+ *                 angle_step = 0
+ * 
+ *             si_list = []             # <<<<<<<<<<<<<<
+ *             for k in range(lsn):
+ *                 base = i + 10 + k*3
+ */
+    __pyx_t_2 = PyList_New(0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 76, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_2);
+    __Pyx_XDECREF_SET(__pyx_v_si_list, ((PyObject*)__pyx_t_2));
+    __pyx_t_2 = 0;
+
+    /* "lidar_parser.pyx":77
+ * 
+ *             si_list = []
+ *             for k in range(lsn):             # <<<<<<<<<<<<<<
+ *                 base = i + 10 + k*3
+ *                 si_l = self.buffer[base]
+ */
+    __pyx_t_7 = __pyx_v_lsn;
+    __pyx_t_8 = __pyx_t_7;
+    for (__pyx_t_9 = 0; __pyx_t_9 < __pyx_t_8; __pyx_t_9+=1) {
+      __pyx_v_k = __pyx_t_9;
+
+      /* "lidar_parser.pyx":78
+ *             si_list = []
+ *             for k in range(lsn):
+ *                 base = i + 10 + k*3             # <<<<<<<<<<<<<<
+ *                 si_l = self.buffer[base]
+ *                 si_2nd = self.buffer[base+1]
+ */
+      __pyx_t_2 = __Pyx_PyInt_From_long(((__pyx_v_i + 10) + (__pyx_v_k * 3))); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 78, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_2);
+      __Pyx_XDECREF_SET(__pyx_v_base, __pyx_t_2);
+      __pyx_t_2 = 0;
+
+      /* "lidar_parser.pyx":79
+ *             for k in range(lsn):
+ *                 base = i + 10 + k*3
+ *                 si_l = self.buffer[base]             # <<<<<<<<<<<<<<
+ *                 si_2nd = self.buffer[base+1]
+ *                 si_h = self.buffer[base+2]
+ */
+      __pyx_t_5 = __Pyx_PyIndex_AsSsize_t(__pyx_v_base); if (unlikely((__pyx_t_5 == (Py_ssize_t)-1) && PyErr_Occurred())) __PYX_ERR(0, 79, __pyx_L1_error)
+      __pyx_v_si_l = (__pyx_v_self->buffer[__pyx_t_5]);
+
+      /* "lidar_parser.pyx":80
+ *                 base = i + 10 + k*3
+ *                 si_l = self.buffer[base]
+ *                 si_2nd = self.buffer[base+1]             # <<<<<<<<<<<<<<
+ *                 si_h = self.buffer[base+2]
+ * 
+ */
+      __pyx_t_2 = __Pyx_PyInt_AddObjC(__pyx_v_base, __pyx_int_1, 1, 0, 0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 80, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_2);
+      __pyx_t_5 = __Pyx_PyIndex_AsSsize_t(__pyx_t_2); if (unlikely((__pyx_t_5 == (Py_ssize_t)-1) && PyErr_Occurred())) __PYX_ERR(0, 80, __pyx_L1_error)
+      __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+      __pyx_v_si_2nd = (__pyx_v_self->buffer[__pyx_t_5]);
+
+      /* "lidar_parser.pyx":81
+ *                 si_l = self.buffer[base]
+ *                 si_2nd = self.buffer[base+1]
+ *                 si_h = self.buffer[base+2]             # <<<<<<<<<<<<<<
+ * 
+ *                 distance = si_h*64 + (si_2nd >> 2)
+ */
+      __pyx_t_2 = __Pyx_PyInt_AddObjC(__pyx_v_base, __pyx_int_2, 2, 0, 0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 81, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_2);
+      __pyx_t_5 = __Pyx_PyIndex_AsSsize_t(__pyx_t_2); if (unlikely((__pyx_t_5 == (Py_ssize_t)-1) && PyErr_Occurred())) __PYX_ERR(0, 81, __pyx_L1_error)
+      __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+      __pyx_v_si_h = (__pyx_v_self->buffer[__pyx_t_5]);
+
+      /* "lidar_parser.pyx":83
+ *                 si_h = self.buffer[base+2]
+ * 
+ *                 distance = si_h*64 + (si_2nd >> 2)             # <<<<<<<<<<<<<<
+ *                 intensity = (si_2nd & 0x03)*64 + (si_l >> 2)
+ *                 high_ref = si_l & 0x01
+ */
+      __pyx_v_distance = ((__pyx_v_si_h * 64) + (__pyx_v_si_2nd >> 2));
+
+      /* "lidar_parser.pyx":84
+ * 
+ *                 distance = si_h*64 + (si_2nd >> 2)
+ *                 intensity = (si_2nd & 0x03)*64 + (si_l >> 2)             # <<<<<<<<<<<<<<
+ *                 high_ref = si_l & 0x01
+ *                 angle = angle_fsa + k*angle_step
+ */
+      __pyx_v_intensity = (((__pyx_v_si_2nd & 0x03) * 64) + (__pyx_v_si_l >> 2));
+
+      /* "lidar_parser.pyx":85
+ *                 distance = si_h*64 + (si_2nd >> 2)
+ *                 intensity = (si_2nd & 0x03)*64 + (si_l >> 2)
+ *                 high_ref = si_l & 0x01             # <<<<<<<<<<<<<<
+ *                 angle = angle_fsa + k*angle_step
+ * 
+ */
+      __pyx_v_high_ref = (__pyx_v_si_l & 0x01);
+
+      /* "lidar_parser.pyx":86
+ *                 intensity = (si_2nd & 0x03)*64 + (si_l >> 2)
+ *                 high_ref = si_l & 0x01
+ *                 angle = angle_fsa + k*angle_step             # <<<<<<<<<<<<<<
+ * 
+ *                 si_list.append({
+ */
+      __pyx_v_angle = (__pyx_v_angle_fsa + (__pyx_v_k * __pyx_v_angle_step));
+
+      /* "lidar_parser.pyx":89
+ * 
+ *                 si_list.append({
+ *                     "distance": distance,             # <<<<<<<<<<<<<<
+ *                     "intensity": intensity,
+ *                     "high_ref": high_ref,
+ */
+      __pyx_t_2 = __Pyx_PyDict_NewPresized(4); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 89, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_2);
+      __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_distance); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 89, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_1);
+      if (PyDict_SetItem(__pyx_t_2, __pyx_n_u_distance, __pyx_t_1) < 0) __PYX_ERR(0, 89, __pyx_L1_error)
+      __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+
+      /* "lidar_parser.pyx":90
+ *                 si_list.append({
+ *                     "distance": distance,
+ *                     "intensity": intensity,             # <<<<<<<<<<<<<<
+ *                     "high_ref": high_ref,
+ *                     "angle": angle
+ */
+      __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_intensity); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 90, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_1);
+      if (PyDict_SetItem(__pyx_t_2, __pyx_n_u_intensity, __pyx_t_1) < 0) __PYX_ERR(0, 89, __pyx_L1_error)
+      __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+
+      /* "lidar_parser.pyx":91
+ *                     "distance": distance,
+ *                     "intensity": intensity,
+ *                     "high_ref": high_ref,             # <<<<<<<<<<<<<<
+ *                     "angle": angle
+ *                 })
+ */
+      __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_high_ref); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 91, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_1);
+      if (PyDict_SetItem(__pyx_t_2, __pyx_n_u_high_ref, __pyx_t_1) < 0) __PYX_ERR(0, 89, __pyx_L1_error)
+      __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+
+      /* "lidar_parser.pyx":92
+ *                     "intensity": intensity,
+ *                     "high_ref": high_ref,
+ *                     "angle": angle             # <<<<<<<<<<<<<<
+ *                 })
+ * 
+ */
+      __pyx_t_1 = PyFloat_FromDouble(__pyx_v_angle); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 92, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_1);
+      if (PyDict_SetItem(__pyx_t_2, __pyx_n_u_angle, __pyx_t_1) < 0) __PYX_ERR(0, 89, __pyx_L1_error)
+      __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+
+      /* "lidar_parser.pyx":88
+ *                 angle = angle_fsa + k*angle_step
+ * 
+ *                 si_list.append({             # <<<<<<<<<<<<<<
+ *                     "distance": distance,
+ *                     "intensity": intensity,
+ */
+      __pyx_t_14 = __Pyx_PyList_Append(__pyx_v_si_list, __pyx_t_2); if (unlikely(__pyx_t_14 == ((int)-1))) __PYX_ERR(0, 88, __pyx_L1_error)
+      __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+    }
+
+    /* "lidar_parser.pyx":96
+ * 
+ *             result.append({
+ *                 "LSN": lsn,             # <<<<<<<<<<<<<<
+ *                 "FSA_raw": fsa_raw,
+ *                 "LSA_raw": lsa_raw,
+ */
+    __pyx_t_2 = __Pyx_PyDict_NewPresized(8); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 96, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_2);
+    __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_lsn); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 96, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_1);
+    if (PyDict_SetItem(__pyx_t_2, __pyx_n_u_LSN, __pyx_t_1) < 0) __PYX_ERR(0, 96, __pyx_L1_error)
+    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+
+    /* "lidar_parser.pyx":97
+ *             result.append({
+ *                 "LSN": lsn,
+ *                 "FSA_raw": fsa_raw,             # <<<<<<<<<<<<<<
+ *                 "LSA_raw": lsa_raw,
+ *                 "angle_fsa": angle_fsa,
+ */
+    __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_fsa_raw); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 97, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_1);
+    if (PyDict_SetItem(__pyx_t_2, __pyx_n_u_FSA_raw, __pyx_t_1) < 0) __PYX_ERR(0, 96, __pyx_L1_error)
+    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+
+    /* "lidar_parser.pyx":98
+ *                 "LSN": lsn,
+ *                 "FSA_raw": fsa_raw,
+ *                 "LSA_raw": lsa_raw,             # <<<<<<<<<<<<<<
+ *                 "angle_fsa": angle_fsa,
+ *                 "angle_lsa": angle_lsa,
+ */
+    __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_lsa_raw); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 98, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_1);
+    if (PyDict_SetItem(__pyx_t_2, __pyx_n_u_LSA_raw, __pyx_t_1) < 0) __PYX_ERR(0, 96, __pyx_L1_error)
+    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+
+    /* "lidar_parser.pyx":99
+ *                 "FSA_raw": fsa_raw,
+ *                 "LSA_raw": lsa_raw,
+ *                 "angle_fsa": angle_fsa,             # <<<<<<<<<<<<<<
+ *                 "angle_lsa": angle_lsa,
+ *                 "start_idx": i,
+ */
+    __pyx_t_1 = PyFloat_FromDouble(__pyx_v_angle_fsa); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 99, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_1);
+    if (PyDict_SetItem(__pyx_t_2, __pyx_n_u_angle_fsa, __pyx_t_1) < 0) __PYX_ERR(0, 96, __pyx_L1_error)
+    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+
+    /* "lidar_parser.pyx":100
+ *                 "LSA_raw": lsa_raw,
+ *                 "angle_fsa": angle_fsa,
+ *                 "angle_lsa": angle_lsa,             # <<<<<<<<<<<<<<
+ *                 "start_idx": i,
+ *                 "packet_len": packet_len,
+ */
+    __pyx_t_1 = PyFloat_FromDouble(__pyx_v_angle_lsa); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 100, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_1);
+    if (PyDict_SetItem(__pyx_t_2, __pyx_n_u_angle_lsa, __pyx_t_1) < 0) __PYX_ERR(0, 96, __pyx_L1_error)
+    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+
+    /* "lidar_parser.pyx":101
+ *                 "angle_fsa": angle_fsa,
+ *                 "angle_lsa": angle_lsa,
+ *                 "start_idx": i,             # <<<<<<<<<<<<<<
+ *                 "packet_len": packet_len,
+ *                 "Si": si_list,
+ */
+    __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_i); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 101, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_1);
+    if (PyDict_SetItem(__pyx_t_2, __pyx_n_u_start_idx, __pyx_t_1) < 0) __PYX_ERR(0, 96, __pyx_L1_error)
+    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+
+    /* "lidar_parser.pyx":102
+ *                 "angle_lsa": angle_lsa,
+ *                 "start_idx": i,
+ *                 "packet_len": packet_len,             # <<<<<<<<<<<<<<
+ *                 "Si": si_list,
+ * 
+ */
+    __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_packet_len); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 102, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_1);
+    if (PyDict_SetItem(__pyx_t_2, __pyx_n_u_packet_len, __pyx_t_1) < 0) __PYX_ERR(0, 96, __pyx_L1_error)
+    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+
+    /* "lidar_parser.pyx":103
+ *                 "start_idx": i,
+ *                 "packet_len": packet_len,
+ *                 "Si": si_list,             # <<<<<<<<<<<<<<
+ * 
+ *             })
+ */
+    if (PyDict_SetItem(__pyx_t_2, __pyx_n_u_Si, __pyx_v_si_list) < 0) __PYX_ERR(0, 96, __pyx_L1_error)
+
+    /* "lidar_parser.pyx":95
+ *                 })
+ * 
+ *             result.append({             # <<<<<<<<<<<<<<
+ *                 "LSN": lsn,
+ *                 "FSA_raw": fsa_raw,
+ */
+    __pyx_t_14 = __Pyx_PyList_Append(__pyx_v_result, __pyx_t_2); if (unlikely(__pyx_t_14 == ((int)-1))) __PYX_ERR(0, 95, __pyx_L1_error)
+    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+
+    /* "lidar_parser.pyx":107
+ *             })
+ * 
  *             i += packet_len             # <<<<<<<<<<<<<<
  * 
- *         #  buffer
+ *         #
  */
-    __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_v_i); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 68, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_3);
-    __pyx_t_2 = PyNumber_InPlaceAdd(__pyx_t_3, __pyx_v_packet_len); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 68, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_2);
-    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    __pyx_t_13 = __Pyx_PyInt_As_int(__pyx_t_2); if (unlikely((__pyx_t_13 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 68, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __pyx_v_i = __pyx_t_13;
+    __pyx_v_i = (__pyx_v_i + __pyx_v_packet_len);
     __pyx_L6_continue:;
   }
   __pyx_L7_break:;
 
-  /* "lidar_parser.pyx":71
+  /* "lidar_parser.pyx":110
  * 
- *         #  buffer
+ *         #
  *         if i > 0:             # <<<<<<<<<<<<<<
  *             remaining = self.buf_len - i
- *             for j in range(remaining):
+ *             for k in range(remaining):
  */
   __pyx_t_6 = ((__pyx_v_i > 0) != 0);
   if (__pyx_t_6) {
 
-    /* "lidar_parser.pyx":72
- *         #  buffer
+    /* "lidar_parser.pyx":111
+ *         #
  *         if i > 0:
  *             remaining = self.buf_len - i             # <<<<<<<<<<<<<<
- *             for j in range(remaining):
- *                 self.buffer[j] = self.buffer[i+j]
+ *             for k in range(remaining):
+ *                 self.buffer[k] = self.buffer[i+k]
  */
     __pyx_v_remaining = (__pyx_v_self->buf_len - __pyx_v_i);
 
-    /* "lidar_parser.pyx":73
+    /* "lidar_parser.pyx":112
  *         if i > 0:
  *             remaining = self.buf_len - i
- *             for j in range(remaining):             # <<<<<<<<<<<<<<
- *                 self.buffer[j] = self.buffer[i+j]
+ *             for k in range(remaining):             # <<<<<<<<<<<<<<
+ *                 self.buffer[k] = self.buffer[i+k]
  *             self.buf_len = remaining
  */
-    __pyx_t_2 = __Pyx_PyInt_From_int(__pyx_v_remaining); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 73, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_2);
-    __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_builtin_range, __pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 73, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_3);
-    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    if (likely(PyList_CheckExact(__pyx_t_3)) || PyTuple_CheckExact(__pyx_t_3)) {
-      __pyx_t_2 = __pyx_t_3; __Pyx_INCREF(__pyx_t_2); __pyx_t_9 = 0;
-      __pyx_t_7 = NULL;
-    } else {
-      __pyx_t_9 = -1; __pyx_t_2 = PyObject_GetIter(__pyx_t_3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 73, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_2);
-      __pyx_t_7 = Py_TYPE(__pyx_t_2)->tp_iternext; if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 73, __pyx_L1_error)
-    }
-    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    for (;;) {
-      if (likely(!__pyx_t_7)) {
-        if (likely(PyList_CheckExact(__pyx_t_2))) {
-          if (__pyx_t_9 >= PyList_GET_SIZE(__pyx_t_2)) break;
-          #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-          __pyx_t_3 = PyList_GET_ITEM(__pyx_t_2, __pyx_t_9); __Pyx_INCREF(__pyx_t_3); __pyx_t_9++; if (unlikely(0 < 0)) __PYX_ERR(0, 73, __pyx_L1_error)
-          #else
-          __pyx_t_3 = PySequence_ITEM(__pyx_t_2, __pyx_t_9); __pyx_t_9++; if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 73, __pyx_L1_error)
-          __Pyx_GOTREF(__pyx_t_3);
-          #endif
-        } else {
-          if (__pyx_t_9 >= PyTuple_GET_SIZE(__pyx_t_2)) break;
-          #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-          __pyx_t_3 = PyTuple_GET_ITEM(__pyx_t_2, __pyx_t_9); __Pyx_INCREF(__pyx_t_3); __pyx_t_9++; if (unlikely(0 < 0)) __PYX_ERR(0, 73, __pyx_L1_error)
-          #else
-          __pyx_t_3 = PySequence_ITEM(__pyx_t_2, __pyx_t_9); __pyx_t_9++; if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 73, __pyx_L1_error)
-          __Pyx_GOTREF(__pyx_t_3);
-          #endif
-        }
-      } else {
-        __pyx_t_3 = __pyx_t_7(__pyx_t_2);
-        if (unlikely(!__pyx_t_3)) {
-          PyObject* exc_type = PyErr_Occurred();
-          if (exc_type) {
-            if (likely(__Pyx_PyErr_GivenExceptionMatches(exc_type, PyExc_StopIteration))) PyErr_Clear();
-            else __PYX_ERR(0, 73, __pyx_L1_error)
-          }
-          break;
-        }
-        __Pyx_GOTREF(__pyx_t_3);
-      }
-      __Pyx_XDECREF_SET(__pyx_v_j, __pyx_t_3);
-      __pyx_t_3 = 0;
+    __pyx_t_7 = __pyx_v_remaining;
+    __pyx_t_8 = __pyx_t_7;
+    for (__pyx_t_9 = 0; __pyx_t_9 < __pyx_t_8; __pyx_t_9+=1) {
+      __pyx_v_k = __pyx_t_9;
 
-      /* "lidar_parser.pyx":74
+      /* "lidar_parser.pyx":113
  *             remaining = self.buf_len - i
- *             for j in range(remaining):
- *                 self.buffer[j] = self.buffer[i+j]             # <<<<<<<<<<<<<<
+ *             for k in range(remaining):
+ *                 self.buffer[k] = self.buffer[i+k]             # <<<<<<<<<<<<<<
  *             self.buf_len = remaining
  * 
  */
-      __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_v_i); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 74, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_3);
-      __pyx_t_1 = PyNumber_Add(__pyx_t_3, __pyx_v_j); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 74, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_1);
-      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-      __pyx_t_5 = __Pyx_PyIndex_AsSsize_t(__pyx_t_1); if (unlikely((__pyx_t_5 == (Py_ssize_t)-1) && PyErr_Occurred())) __PYX_ERR(0, 74, __pyx_L1_error)
-      __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-      __pyx_t_15 = __Pyx_PyIndex_AsSsize_t(__pyx_v_j); if (unlikely((__pyx_t_15 == (Py_ssize_t)-1) && PyErr_Occurred())) __PYX_ERR(0, 74, __pyx_L1_error)
-      (__pyx_v_self->buffer[__pyx_t_15]) = (__pyx_v_self->buffer[__pyx_t_5]);
-
-      /* "lidar_parser.pyx":73
- *         if i > 0:
- *             remaining = self.buf_len - i
- *             for j in range(remaining):             # <<<<<<<<<<<<<<
- *                 self.buffer[j] = self.buffer[i+j]
- *             self.buf_len = remaining
- */
+      (__pyx_v_self->buffer[__pyx_v_k]) = (__pyx_v_self->buffer[(__pyx_v_i + __pyx_v_k)]);
     }
-    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-    /* "lidar_parser.pyx":75
- *             for j in range(remaining):
- *                 self.buffer[j] = self.buffer[i+j]
+    /* "lidar_parser.pyx":114
+ *             for k in range(remaining):
+ *                 self.buffer[k] = self.buffer[i+k]
  *             self.buf_len = remaining             # <<<<<<<<<<<<<<
  * 
  *         return result
  */
     __pyx_v_self->buf_len = __pyx_v_remaining;
 
-    /* "lidar_parser.pyx":71
+    /* "lidar_parser.pyx":110
  * 
- *         #  buffer
+ *         #
  *         if i > 0:             # <<<<<<<<<<<<<<
  *             remaining = self.buf_len - i
- *             for j in range(remaining):
+ *             for k in range(remaining):
  */
   }
 
-  /* "lidar_parser.pyx":77
+  /* "lidar_parser.pyx":116
  *             self.buf_len = remaining
  * 
  *         return result             # <<<<<<<<<<<<<<
@@ -2195,8 +2350,8 @@ static PyObject *__pyx_f_12lidar_parser_11LidarParser_feed(struct __pyx_obj_12li
  *         self.buf_len = 0
  * 
  *     cpdef list feed(self, bytes data):             # <<<<<<<<<<<<<<
- *         """
- *          UART bytes
+ *         cdef int n = len(data)
+ *         cdef int i = 0
  */
 
   /* function exit code */
@@ -2209,10 +2364,11 @@ static PyObject *__pyx_f_12lidar_parser_11LidarParser_feed(struct __pyx_obj_12li
   __pyx_r = 0;
   __pyx_L0:;
   __Pyx_XDECREF(__pyx_v_result);
-  __Pyx_XDECREF(__pyx_v_j);
-  __Pyx_XDECREF(__pyx_v_lsn);
-  __Pyx_XDECREF(__pyx_v_packet_len);
-  __Pyx_XDECREF(__pyx_v_cs_received);
+  __Pyx_XDECREF(__pyx_v_si_list);
+  __Pyx_XDECREF(__pyx_v_val);
+  __Pyx_XDECREF(__pyx_v_val1);
+  __Pyx_XDECREF(__pyx_v_val2);
+  __Pyx_XDECREF(__pyx_v_base);
   __Pyx_XGIVEREF(__pyx_r);
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
@@ -2220,7 +2376,6 @@ static PyObject *__pyx_f_12lidar_parser_11LidarParser_feed(struct __pyx_obj_12li
 
 /* Python wrapper */
 static PyObject *__pyx_pw_12lidar_parser_11LidarParser_3feed(PyObject *__pyx_v_self, PyObject *__pyx_v_data); /*proto*/
-static char __pyx_doc_12lidar_parser_11LidarParser_2feed[] = "\n        \350\276\223\345\205\245 UART bytes\n        \350\276\223\345\207\272: list of dict\357\274\214\346\257\217\344\270\252 dict \345\214\205\345\220\253 LSN/FSA/LSA\n        ";
 static PyObject *__pyx_pw_12lidar_parser_11LidarParser_3feed(PyObject *__pyx_v_self, PyObject *__pyx_v_data) {
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
@@ -2408,7 +2563,7 @@ static void __pyx_tp_dealloc_12lidar_parser_LidarParser(PyObject *o) {
 }
 
 static PyMethodDef __pyx_methods_12lidar_parser_LidarParser[] = {
-  {"feed", (PyCFunction)__pyx_pw_12lidar_parser_11LidarParser_3feed, METH_O, __pyx_doc_12lidar_parser_11LidarParser_2feed},
+  {"feed", (PyCFunction)__pyx_pw_12lidar_parser_11LidarParser_3feed, METH_O, 0},
   {"__reduce_cython__", (PyCFunction)__pyx_pw_12lidar_parser_11LidarParser_5__reduce_cython__, METH_NOARGS, 0},
   {"__setstate_cython__", (PyCFunction)__pyx_pw_12lidar_parser_11LidarParser_7__setstate_cython__, METH_O, 0},
   {0, 0, 0, 0}
@@ -2532,14 +2687,21 @@ static struct PyModuleDef __pyx_moduledef = {
 #endif
 
 static __Pyx_StringTabEntry __pyx_string_tab[] = {
-  {&__pyx_n_u_FSA, __pyx_k_FSA, sizeof(__pyx_k_FSA), 0, 1, 0, 1},
-  {&__pyx_n_u_LSA, __pyx_k_LSA, sizeof(__pyx_k_LSA), 0, 1, 0, 1},
+  {&__pyx_n_u_FSA_raw, __pyx_k_FSA_raw, sizeof(__pyx_k_FSA_raw), 0, 1, 0, 1},
+  {&__pyx_n_u_LSA_raw, __pyx_k_LSA_raw, sizeof(__pyx_k_LSA_raw), 0, 1, 0, 1},
   {&__pyx_n_u_LSN, __pyx_k_LSN, sizeof(__pyx_k_LSN), 0, 1, 0, 1},
   {&__pyx_n_s_LidarParser, __pyx_k_LidarParser, sizeof(__pyx_k_LidarParser), 0, 0, 1, 1},
+  {&__pyx_n_u_Si, __pyx_k_Si, sizeof(__pyx_k_Si), 0, 1, 0, 1},
   {&__pyx_n_s_TypeError, __pyx_k_TypeError, sizeof(__pyx_k_TypeError), 0, 0, 1, 1},
+  {&__pyx_n_u_angle, __pyx_k_angle, sizeof(__pyx_k_angle), 0, 1, 0, 1},
+  {&__pyx_n_u_angle_fsa, __pyx_k_angle_fsa, sizeof(__pyx_k_angle_fsa), 0, 1, 0, 1},
+  {&__pyx_n_u_angle_lsa, __pyx_k_angle_lsa, sizeof(__pyx_k_angle_lsa), 0, 1, 0, 1},
   {&__pyx_n_s_cline_in_traceback, __pyx_k_cline_in_traceback, sizeof(__pyx_k_cline_in_traceback), 0, 0, 1, 1},
+  {&__pyx_n_u_distance, __pyx_k_distance, sizeof(__pyx_k_distance), 0, 1, 0, 1},
   {&__pyx_n_s_feed, __pyx_k_feed, sizeof(__pyx_k_feed), 0, 0, 1, 1},
   {&__pyx_n_s_getstate, __pyx_k_getstate, sizeof(__pyx_k_getstate), 0, 0, 1, 1},
+  {&__pyx_n_u_high_ref, __pyx_k_high_ref, sizeof(__pyx_k_high_ref), 0, 1, 0, 1},
+  {&__pyx_n_u_intensity, __pyx_k_intensity, sizeof(__pyx_k_intensity), 0, 1, 0, 1},
   {&__pyx_n_s_main, __pyx_k_main, sizeof(__pyx_k_main), 0, 0, 1, 1},
   {&__pyx_n_s_name, __pyx_k_name, sizeof(__pyx_k_name), 0, 0, 1, 1},
   {&__pyx_kp_s_no_default___reduce___due_to_non, __pyx_k_no_default___reduce___due_to_non, sizeof(__pyx_k_no_default___reduce___due_to_non), 0, 0, 1, 0},
@@ -2556,7 +2718,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {0, 0, 0, 0, 0, 0, 0}
 };
 static CYTHON_SMALL_CODE int __Pyx_InitCachedBuiltins(void) {
-  __pyx_builtin_range = __Pyx_GetBuiltinName(__pyx_n_s_range); if (!__pyx_builtin_range) __PYX_ERR(0, 29, __pyx_L1_error)
+  __pyx_builtin_range = __Pyx_GetBuiltinName(__pyx_n_s_range); if (!__pyx_builtin_range) __PYX_ERR(0, 30, __pyx_L1_error)
   __pyx_builtin_TypeError = __Pyx_GetBuiltinName(__pyx_n_s_TypeError); if (!__pyx_builtin_TypeError) __PYX_ERR(1, 2, __pyx_L1_error)
   return 0;
   __pyx_L1_error:;
@@ -2596,8 +2758,6 @@ static CYTHON_SMALL_CODE int __Pyx_InitGlobals(void) {
   if (__Pyx_InitStrings(__pyx_string_tab) < 0) __PYX_ERR(0, 1, __pyx_L1_error);
   __pyx_int_1 = PyInt_FromLong(1); if (unlikely(!__pyx_int_1)) __PYX_ERR(0, 1, __pyx_L1_error)
   __pyx_int_2 = PyInt_FromLong(2); if (unlikely(!__pyx_int_2)) __PYX_ERR(0, 1, __pyx_L1_error)
-  __pyx_int_3 = PyInt_FromLong(3); if (unlikely(!__pyx_int_3)) __PYX_ERR(0, 1, __pyx_L1_error)
-  __pyx_int_10 = PyInt_FromLong(10); if (unlikely(!__pyx_int_10)) __PYX_ERR(0, 1, __pyx_L1_error)
   return 0;
   __pyx_L1_error:;
   return -1;
@@ -3396,162 +3556,9 @@ static CYTHON_INLINE PyObject *__Pyx_GetItemInt_Fast(PyObject *o, Py_ssize_t i, 
     return __Pyx_GetItemInt_Generic(o, PyInt_FromSsize_t(i));
 }
 
-/* ObjectGetItem */
-#if CYTHON_USE_TYPE_SLOTS
-static PyObject *__Pyx_PyObject_GetIndex(PyObject *obj, PyObject* index) {
-    PyObject *runerr;
-    Py_ssize_t key_value;
-    PySequenceMethods *m = Py_TYPE(obj)->tp_as_sequence;
-    if (unlikely(!(m && m->sq_item))) {
-        PyErr_Format(PyExc_TypeError, "'%.200s' object is not subscriptable", Py_TYPE(obj)->tp_name);
-        return NULL;
-    }
-    key_value = __Pyx_PyIndex_AsSsize_t(index);
-    if (likely(key_value != -1 || !(runerr = PyErr_Occurred()))) {
-        return __Pyx_GetItemInt_Fast(obj, key_value, 0, 1, 1);
-    }
-    if (PyErr_GivenExceptionMatches(runerr, PyExc_OverflowError)) {
-        PyErr_Clear();
-        PyErr_Format(PyExc_IndexError, "cannot fit '%.200s' into an index-sized integer", Py_TYPE(index)->tp_name);
-    }
-    return NULL;
-}
-static PyObject *__Pyx_PyObject_GetItem(PyObject *obj, PyObject* key) {
-    PyMappingMethods *m = Py_TYPE(obj)->tp_as_mapping;
-    if (likely(m && m->mp_subscript)) {
-        return m->mp_subscript(obj, key);
-    }
-    return __Pyx_PyObject_GetIndex(obj, key);
-}
-#endif
-
 /* PyIntBinop */
 #if !CYTHON_COMPILING_IN_PYPY
-static PyObject* __Pyx_PyInt_AddCObj(PyObject *op1, PyObject *op2, CYTHON_UNUSED long intval, int inplace, int zerodivision_check) {
-    (void)inplace;
-    (void)zerodivision_check;
-    #if PY_MAJOR_VERSION < 3
-    if (likely(PyInt_CheckExact(op2))) {
-        const long a = intval;
-        long x;
-        long b = PyInt_AS_LONG(op2);
-            x = (long)((unsigned long)a + b);
-            if (likely((x^a) >= 0 || (x^b) >= 0))
-                return PyInt_FromLong(x);
-            return PyLong_Type.tp_as_number->nb_add(op1, op2);
-    }
-    #endif
-    #if CYTHON_USE_PYLONG_INTERNALS
-    if (likely(PyLong_CheckExact(op2))) {
-        const long a = intval;
-        long b, x;
-#ifdef HAVE_LONG_LONG
-        const PY_LONG_LONG lla = intval;
-        PY_LONG_LONG llb, llx;
-#endif
-        const digit* digits = ((PyLongObject*)op2)->ob_digit;
-        const Py_ssize_t size = Py_SIZE(op2);
-        if (likely(__Pyx_sst_abs(size) <= 1)) {
-            b = likely(size) ? digits[0] : 0;
-            if (size == -1) b = -b;
-        } else {
-            switch (size) {
-                case -2:
-                    if (8 * sizeof(long) - 1 > 2 * PyLong_SHIFT) {
-                        b = -(long) (((((unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0]));
-                        break;
-#ifdef HAVE_LONG_LONG
-                    } else if (8 * sizeof(PY_LONG_LONG) - 1 > 2 * PyLong_SHIFT) {
-                        llb = -(PY_LONG_LONG) (((((unsigned PY_LONG_LONG)digits[1]) << PyLong_SHIFT) | (unsigned PY_LONG_LONG)digits[0]));
-                        goto long_long;
-#endif
-                    }
-                    CYTHON_FALLTHROUGH;
-                case 2:
-                    if (8 * sizeof(long) - 1 > 2 * PyLong_SHIFT) {
-                        b = (long) (((((unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0]));
-                        break;
-#ifdef HAVE_LONG_LONG
-                    } else if (8 * sizeof(PY_LONG_LONG) - 1 > 2 * PyLong_SHIFT) {
-                        llb = (PY_LONG_LONG) (((((unsigned PY_LONG_LONG)digits[1]) << PyLong_SHIFT) | (unsigned PY_LONG_LONG)digits[0]));
-                        goto long_long;
-#endif
-                    }
-                    CYTHON_FALLTHROUGH;
-                case -3:
-                    if (8 * sizeof(long) - 1 > 3 * PyLong_SHIFT) {
-                        b = -(long) (((((((unsigned long)digits[2]) << PyLong_SHIFT) | (unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0]));
-                        break;
-#ifdef HAVE_LONG_LONG
-                    } else if (8 * sizeof(PY_LONG_LONG) - 1 > 3 * PyLong_SHIFT) {
-                        llb = -(PY_LONG_LONG) (((((((unsigned PY_LONG_LONG)digits[2]) << PyLong_SHIFT) | (unsigned PY_LONG_LONG)digits[1]) << PyLong_SHIFT) | (unsigned PY_LONG_LONG)digits[0]));
-                        goto long_long;
-#endif
-                    }
-                    CYTHON_FALLTHROUGH;
-                case 3:
-                    if (8 * sizeof(long) - 1 > 3 * PyLong_SHIFT) {
-                        b = (long) (((((((unsigned long)digits[2]) << PyLong_SHIFT) | (unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0]));
-                        break;
-#ifdef HAVE_LONG_LONG
-                    } else if (8 * sizeof(PY_LONG_LONG) - 1 > 3 * PyLong_SHIFT) {
-                        llb = (PY_LONG_LONG) (((((((unsigned PY_LONG_LONG)digits[2]) << PyLong_SHIFT) | (unsigned PY_LONG_LONG)digits[1]) << PyLong_SHIFT) | (unsigned PY_LONG_LONG)digits[0]));
-                        goto long_long;
-#endif
-                    }
-                    CYTHON_FALLTHROUGH;
-                case -4:
-                    if (8 * sizeof(long) - 1 > 4 * PyLong_SHIFT) {
-                        b = -(long) (((((((((unsigned long)digits[3]) << PyLong_SHIFT) | (unsigned long)digits[2]) << PyLong_SHIFT) | (unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0]));
-                        break;
-#ifdef HAVE_LONG_LONG
-                    } else if (8 * sizeof(PY_LONG_LONG) - 1 > 4 * PyLong_SHIFT) {
-                        llb = -(PY_LONG_LONG) (((((((((unsigned PY_LONG_LONG)digits[3]) << PyLong_SHIFT) | (unsigned PY_LONG_LONG)digits[2]) << PyLong_SHIFT) | (unsigned PY_LONG_LONG)digits[1]) << PyLong_SHIFT) | (unsigned PY_LONG_LONG)digits[0]));
-                        goto long_long;
-#endif
-                    }
-                    CYTHON_FALLTHROUGH;
-                case 4:
-                    if (8 * sizeof(long) - 1 > 4 * PyLong_SHIFT) {
-                        b = (long) (((((((((unsigned long)digits[3]) << PyLong_SHIFT) | (unsigned long)digits[2]) << PyLong_SHIFT) | (unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0]));
-                        break;
-#ifdef HAVE_LONG_LONG
-                    } else if (8 * sizeof(PY_LONG_LONG) - 1 > 4 * PyLong_SHIFT) {
-                        llb = (PY_LONG_LONG) (((((((((unsigned PY_LONG_LONG)digits[3]) << PyLong_SHIFT) | (unsigned PY_LONG_LONG)digits[2]) << PyLong_SHIFT) | (unsigned PY_LONG_LONG)digits[1]) << PyLong_SHIFT) | (unsigned PY_LONG_LONG)digits[0]));
-                        goto long_long;
-#endif
-                    }
-                    CYTHON_FALLTHROUGH;
-                default: return PyLong_Type.tp_as_number->nb_add(op1, op2);
-            }
-        }
-                x = a + b;
-            return PyLong_FromLong(x);
-#ifdef HAVE_LONG_LONG
-        long_long:
-                llx = lla + llb;
-            return PyLong_FromLongLong(llx);
-#endif
-        
-        
-    }
-    #endif
-    if (PyFloat_CheckExact(op2)) {
-        const long a = intval;
-        double b = PyFloat_AS_DOUBLE(op2);
-            double result;
-            PyFPE_START_PROTECT("add", return NULL)
-            result = ((double)a) + (double)b;
-            PyFPE_END_PROTECT(result)
-            return PyFloat_FromDouble(result);
-    }
-    return (inplace ? PyNumber_InPlaceAdd : PyNumber_Add)(op1, op2);
-}
-#endif
-
-/* PyIntBinop */
-#if !CYTHON_COMPILING_IN_PYPY
-static PyObject* __Pyx_PyInt_SubtractObjC(PyObject *op1, PyObject *op2, CYTHON_UNUSED long intval, int inplace, int zerodivision_check) {
+static PyObject* __Pyx_PyInt_AddObjC(PyObject *op1, PyObject *op2, CYTHON_UNUSED long intval, int inplace, int zerodivision_check) {
     (void)inplace;
     (void)zerodivision_check;
     #if PY_MAJOR_VERSION < 3
@@ -3559,10 +3566,10 @@ static PyObject* __Pyx_PyInt_SubtractObjC(PyObject *op1, PyObject *op2, CYTHON_U
         const long b = intval;
         long x;
         long a = PyInt_AS_LONG(op1);
-            x = (long)((unsigned long)a - b);
-            if (likely((x^a) >= 0 || (x^~b) >= 0))
+            x = (long)((unsigned long)a + b);
+            if (likely((x^a) >= 0 || (x^b) >= 0))
                 return PyInt_FromLong(x);
-            return PyLong_Type.tp_as_number->nb_subtract(op1, op2);
+            return PyLong_Type.tp_as_number->nb_add(op1, op2);
     }
     #endif
     #if CYTHON_USE_PYLONG_INTERNALS
@@ -3646,14 +3653,14 @@ static PyObject* __Pyx_PyInt_SubtractObjC(PyObject *op1, PyObject *op2, CYTHON_U
 #endif
                     }
                     CYTHON_FALLTHROUGH;
-                default: return PyLong_Type.tp_as_number->nb_subtract(op1, op2);
+                default: return PyLong_Type.tp_as_number->nb_add(op1, op2);
             }
         }
-                x = a - b;
+                x = a + b;
             return PyLong_FromLong(x);
 #ifdef HAVE_LONG_LONG
         long_long:
-                llx = lla - llb;
+                llx = lla + llb;
             return PyLong_FromLongLong(llx);
 #endif
         
@@ -3664,12 +3671,12 @@ static PyObject* __Pyx_PyInt_SubtractObjC(PyObject *op1, PyObject *op2, CYTHON_U
         const long b = intval;
         double a = PyFloat_AS_DOUBLE(op1);
             double result;
-            PyFPE_START_PROTECT("subtract", return NULL)
-            result = ((double)a) - (double)b;
+            PyFPE_START_PROTECT("add", return NULL)
+            result = ((double)a) + (double)b;
             PyFPE_END_PROTECT(result)
             return PyFloat_FromDouble(result);
     }
-    return (inplace ? PyNumber_InPlaceSubtract : PyNumber_Subtract)(op1, op2);
+    return (inplace ? PyNumber_InPlaceAdd : PyNumber_Add)(op1, op2);
 }
 #endif
 
@@ -4386,240 +4393,6 @@ static CYTHON_INLINE PyObject* __Pyx_PyInt_From_int(int value) {
 }
 
 /* CIntFromPy */
-static CYTHON_INLINE uint8_t __Pyx_PyInt_As_uint8_t(PyObject *x) {
-#ifdef __Pyx_HAS_GCC_DIAGNOSTIC
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wconversion"
-#endif
-    const uint8_t neg_one = (uint8_t) -1, const_zero = (uint8_t) 0;
-#ifdef __Pyx_HAS_GCC_DIAGNOSTIC
-#pragma GCC diagnostic pop
-#endif
-    const int is_unsigned = neg_one > const_zero;
-#if PY_MAJOR_VERSION < 3
-    if (likely(PyInt_Check(x))) {
-        if (sizeof(uint8_t) < sizeof(long)) {
-            __PYX_VERIFY_RETURN_INT(uint8_t, long, PyInt_AS_LONG(x))
-        } else {
-            long val = PyInt_AS_LONG(x);
-            if (is_unsigned && unlikely(val < 0)) {
-                goto raise_neg_overflow;
-            }
-            return (uint8_t) val;
-        }
-    } else
-#endif
-    if (likely(PyLong_Check(x))) {
-        if (is_unsigned) {
-#if CYTHON_USE_PYLONG_INTERNALS
-            const digit* digits = ((PyLongObject*)x)->ob_digit;
-            switch (Py_SIZE(x)) {
-                case  0: return (uint8_t) 0;
-                case  1: __PYX_VERIFY_RETURN_INT(uint8_t, digit, digits[0])
-                case 2:
-                    if (8 * sizeof(uint8_t) > 1 * PyLong_SHIFT) {
-                        if (8 * sizeof(unsigned long) > 2 * PyLong_SHIFT) {
-                            __PYX_VERIFY_RETURN_INT(uint8_t, unsigned long, (((((unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0])))
-                        } else if (8 * sizeof(uint8_t) >= 2 * PyLong_SHIFT) {
-                            return (uint8_t) (((((uint8_t)digits[1]) << PyLong_SHIFT) | (uint8_t)digits[0]));
-                        }
-                    }
-                    break;
-                case 3:
-                    if (8 * sizeof(uint8_t) > 2 * PyLong_SHIFT) {
-                        if (8 * sizeof(unsigned long) > 3 * PyLong_SHIFT) {
-                            __PYX_VERIFY_RETURN_INT(uint8_t, unsigned long, (((((((unsigned long)digits[2]) << PyLong_SHIFT) | (unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0])))
-                        } else if (8 * sizeof(uint8_t) >= 3 * PyLong_SHIFT) {
-                            return (uint8_t) (((((((uint8_t)digits[2]) << PyLong_SHIFT) | (uint8_t)digits[1]) << PyLong_SHIFT) | (uint8_t)digits[0]));
-                        }
-                    }
-                    break;
-                case 4:
-                    if (8 * sizeof(uint8_t) > 3 * PyLong_SHIFT) {
-                        if (8 * sizeof(unsigned long) > 4 * PyLong_SHIFT) {
-                            __PYX_VERIFY_RETURN_INT(uint8_t, unsigned long, (((((((((unsigned long)digits[3]) << PyLong_SHIFT) | (unsigned long)digits[2]) << PyLong_SHIFT) | (unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0])))
-                        } else if (8 * sizeof(uint8_t) >= 4 * PyLong_SHIFT) {
-                            return (uint8_t) (((((((((uint8_t)digits[3]) << PyLong_SHIFT) | (uint8_t)digits[2]) << PyLong_SHIFT) | (uint8_t)digits[1]) << PyLong_SHIFT) | (uint8_t)digits[0]));
-                        }
-                    }
-                    break;
-            }
-#endif
-#if CYTHON_COMPILING_IN_CPYTHON
-            if (unlikely(Py_SIZE(x) < 0)) {
-                goto raise_neg_overflow;
-            }
-#else
-            {
-                int result = PyObject_RichCompareBool(x, Py_False, Py_LT);
-                if (unlikely(result < 0))
-                    return (uint8_t) -1;
-                if (unlikely(result == 1))
-                    goto raise_neg_overflow;
-            }
-#endif
-            if (sizeof(uint8_t) <= sizeof(unsigned long)) {
-                __PYX_VERIFY_RETURN_INT_EXC(uint8_t, unsigned long, PyLong_AsUnsignedLong(x))
-#ifdef HAVE_LONG_LONG
-            } else if (sizeof(uint8_t) <= sizeof(unsigned PY_LONG_LONG)) {
-                __PYX_VERIFY_RETURN_INT_EXC(uint8_t, unsigned PY_LONG_LONG, PyLong_AsUnsignedLongLong(x))
-#endif
-            }
-        } else {
-#if CYTHON_USE_PYLONG_INTERNALS
-            const digit* digits = ((PyLongObject*)x)->ob_digit;
-            switch (Py_SIZE(x)) {
-                case  0: return (uint8_t) 0;
-                case -1: __PYX_VERIFY_RETURN_INT(uint8_t, sdigit, (sdigit) (-(sdigit)digits[0]))
-                case  1: __PYX_VERIFY_RETURN_INT(uint8_t,  digit, +digits[0])
-                case -2:
-                    if (8 * sizeof(uint8_t) - 1 > 1 * PyLong_SHIFT) {
-                        if (8 * sizeof(unsigned long) > 2 * PyLong_SHIFT) {
-                            __PYX_VERIFY_RETURN_INT(uint8_t, long, -(long) (((((unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0])))
-                        } else if (8 * sizeof(uint8_t) - 1 > 2 * PyLong_SHIFT) {
-                            return (uint8_t) (((uint8_t)-1)*(((((uint8_t)digits[1]) << PyLong_SHIFT) | (uint8_t)digits[0])));
-                        }
-                    }
-                    break;
-                case 2:
-                    if (8 * sizeof(uint8_t) > 1 * PyLong_SHIFT) {
-                        if (8 * sizeof(unsigned long) > 2 * PyLong_SHIFT) {
-                            __PYX_VERIFY_RETURN_INT(uint8_t, unsigned long, (((((unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0])))
-                        } else if (8 * sizeof(uint8_t) - 1 > 2 * PyLong_SHIFT) {
-                            return (uint8_t) ((((((uint8_t)digits[1]) << PyLong_SHIFT) | (uint8_t)digits[0])));
-                        }
-                    }
-                    break;
-                case -3:
-                    if (8 * sizeof(uint8_t) - 1 > 2 * PyLong_SHIFT) {
-                        if (8 * sizeof(unsigned long) > 3 * PyLong_SHIFT) {
-                            __PYX_VERIFY_RETURN_INT(uint8_t, long, -(long) (((((((unsigned long)digits[2]) << PyLong_SHIFT) | (unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0])))
-                        } else if (8 * sizeof(uint8_t) - 1 > 3 * PyLong_SHIFT) {
-                            return (uint8_t) (((uint8_t)-1)*(((((((uint8_t)digits[2]) << PyLong_SHIFT) | (uint8_t)digits[1]) << PyLong_SHIFT) | (uint8_t)digits[0])));
-                        }
-                    }
-                    break;
-                case 3:
-                    if (8 * sizeof(uint8_t) > 2 * PyLong_SHIFT) {
-                        if (8 * sizeof(unsigned long) > 3 * PyLong_SHIFT) {
-                            __PYX_VERIFY_RETURN_INT(uint8_t, unsigned long, (((((((unsigned long)digits[2]) << PyLong_SHIFT) | (unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0])))
-                        } else if (8 * sizeof(uint8_t) - 1 > 3 * PyLong_SHIFT) {
-                            return (uint8_t) ((((((((uint8_t)digits[2]) << PyLong_SHIFT) | (uint8_t)digits[1]) << PyLong_SHIFT) | (uint8_t)digits[0])));
-                        }
-                    }
-                    break;
-                case -4:
-                    if (8 * sizeof(uint8_t) - 1 > 3 * PyLong_SHIFT) {
-                        if (8 * sizeof(unsigned long) > 4 * PyLong_SHIFT) {
-                            __PYX_VERIFY_RETURN_INT(uint8_t, long, -(long) (((((((((unsigned long)digits[3]) << PyLong_SHIFT) | (unsigned long)digits[2]) << PyLong_SHIFT) | (unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0])))
-                        } else if (8 * sizeof(uint8_t) - 1 > 4 * PyLong_SHIFT) {
-                            return (uint8_t) (((uint8_t)-1)*(((((((((uint8_t)digits[3]) << PyLong_SHIFT) | (uint8_t)digits[2]) << PyLong_SHIFT) | (uint8_t)digits[1]) << PyLong_SHIFT) | (uint8_t)digits[0])));
-                        }
-                    }
-                    break;
-                case 4:
-                    if (8 * sizeof(uint8_t) > 3 * PyLong_SHIFT) {
-                        if (8 * sizeof(unsigned long) > 4 * PyLong_SHIFT) {
-                            __PYX_VERIFY_RETURN_INT(uint8_t, unsigned long, (((((((((unsigned long)digits[3]) << PyLong_SHIFT) | (unsigned long)digits[2]) << PyLong_SHIFT) | (unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0])))
-                        } else if (8 * sizeof(uint8_t) - 1 > 4 * PyLong_SHIFT) {
-                            return (uint8_t) ((((((((((uint8_t)digits[3]) << PyLong_SHIFT) | (uint8_t)digits[2]) << PyLong_SHIFT) | (uint8_t)digits[1]) << PyLong_SHIFT) | (uint8_t)digits[0])));
-                        }
-                    }
-                    break;
-            }
-#endif
-            if (sizeof(uint8_t) <= sizeof(long)) {
-                __PYX_VERIFY_RETURN_INT_EXC(uint8_t, long, PyLong_AsLong(x))
-#ifdef HAVE_LONG_LONG
-            } else if (sizeof(uint8_t) <= sizeof(PY_LONG_LONG)) {
-                __PYX_VERIFY_RETURN_INT_EXC(uint8_t, PY_LONG_LONG, PyLong_AsLongLong(x))
-#endif
-            }
-        }
-        {
-#if CYTHON_COMPILING_IN_PYPY && !defined(_PyLong_AsByteArray)
-            PyErr_SetString(PyExc_RuntimeError,
-                            "_PyLong_AsByteArray() not available in PyPy, cannot convert large numbers");
-#else
-            uint8_t val;
-            PyObject *v = __Pyx_PyNumber_IntOrLong(x);
- #if PY_MAJOR_VERSION < 3
-            if (likely(v) && !PyLong_Check(v)) {
-                PyObject *tmp = v;
-                v = PyNumber_Long(tmp);
-                Py_DECREF(tmp);
-            }
- #endif
-            if (likely(v)) {
-                int one = 1; int is_little = (int)*(unsigned char *)&one;
-                unsigned char *bytes = (unsigned char *)&val;
-                int ret = _PyLong_AsByteArray((PyLongObject *)v,
-                                              bytes, sizeof(val),
-                                              is_little, !is_unsigned);
-                Py_DECREF(v);
-                if (likely(!ret))
-                    return val;
-            }
-#endif
-            return (uint8_t) -1;
-        }
-    } else {
-        uint8_t val;
-        PyObject *tmp = __Pyx_PyNumber_IntOrLong(x);
-        if (!tmp) return (uint8_t) -1;
-        val = __Pyx_PyInt_As_uint8_t(tmp);
-        Py_DECREF(tmp);
-        return val;
-    }
-raise_overflow:
-    PyErr_SetString(PyExc_OverflowError,
-        "value too large to convert to uint8_t");
-    return (uint8_t) -1;
-raise_neg_overflow:
-    PyErr_SetString(PyExc_OverflowError,
-        "can't convert negative value to uint8_t");
-    return (uint8_t) -1;
-}
-
-/* CIntToPy */
-static CYTHON_INLINE PyObject* __Pyx_PyInt_From_uint8_t(uint8_t value) {
-#ifdef __Pyx_HAS_GCC_DIAGNOSTIC
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wconversion"
-#endif
-    const uint8_t neg_one = (uint8_t) -1, const_zero = (uint8_t) 0;
-#ifdef __Pyx_HAS_GCC_DIAGNOSTIC
-#pragma GCC diagnostic pop
-#endif
-    const int is_unsigned = neg_one > const_zero;
-    if (is_unsigned) {
-        if (sizeof(uint8_t) < sizeof(long)) {
-            return PyInt_FromLong((long) value);
-        } else if (sizeof(uint8_t) <= sizeof(unsigned long)) {
-            return PyLong_FromUnsignedLong((unsigned long) value);
-#ifdef HAVE_LONG_LONG
-        } else if (sizeof(uint8_t) <= sizeof(unsigned PY_LONG_LONG)) {
-            return PyLong_FromUnsignedLongLong((unsigned PY_LONG_LONG) value);
-#endif
-        }
-    } else {
-        if (sizeof(uint8_t) <= sizeof(long)) {
-            return PyInt_FromLong((long) value);
-#ifdef HAVE_LONG_LONG
-        } else if (sizeof(uint8_t) <= sizeof(PY_LONG_LONG)) {
-            return PyLong_FromLongLong((PY_LONG_LONG) value);
-#endif
-        }
-    }
-    {
-        int one = 1; int little = (int)*(unsigned char *)&one;
-        unsigned char *bytes = (unsigned char *)&value;
-        return _PyLong_FromByteArray(bytes, sizeof(uint8_t),
-                                     little, !is_unsigned);
-    }
-}
-
-/* CIntFromPy */
 static CYTHON_INLINE int __Pyx_PyInt_As_int(PyObject *x) {
 #ifdef __Pyx_HAS_GCC_DIAGNOSTIC
 #pragma GCC diagnostic push
@@ -4813,6 +4586,202 @@ raise_neg_overflow:
     PyErr_SetString(PyExc_OverflowError,
         "can't convert negative value to int");
     return (int) -1;
+}
+
+/* CIntFromPy */
+static CYTHON_INLINE uint8_t __Pyx_PyInt_As_uint8_t(PyObject *x) {
+#ifdef __Pyx_HAS_GCC_DIAGNOSTIC
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconversion"
+#endif
+    const uint8_t neg_one = (uint8_t) -1, const_zero = (uint8_t) 0;
+#ifdef __Pyx_HAS_GCC_DIAGNOSTIC
+#pragma GCC diagnostic pop
+#endif
+    const int is_unsigned = neg_one > const_zero;
+#if PY_MAJOR_VERSION < 3
+    if (likely(PyInt_Check(x))) {
+        if (sizeof(uint8_t) < sizeof(long)) {
+            __PYX_VERIFY_RETURN_INT(uint8_t, long, PyInt_AS_LONG(x))
+        } else {
+            long val = PyInt_AS_LONG(x);
+            if (is_unsigned && unlikely(val < 0)) {
+                goto raise_neg_overflow;
+            }
+            return (uint8_t) val;
+        }
+    } else
+#endif
+    if (likely(PyLong_Check(x))) {
+        if (is_unsigned) {
+#if CYTHON_USE_PYLONG_INTERNALS
+            const digit* digits = ((PyLongObject*)x)->ob_digit;
+            switch (Py_SIZE(x)) {
+                case  0: return (uint8_t) 0;
+                case  1: __PYX_VERIFY_RETURN_INT(uint8_t, digit, digits[0])
+                case 2:
+                    if (8 * sizeof(uint8_t) > 1 * PyLong_SHIFT) {
+                        if (8 * sizeof(unsigned long) > 2 * PyLong_SHIFT) {
+                            __PYX_VERIFY_RETURN_INT(uint8_t, unsigned long, (((((unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0])))
+                        } else if (8 * sizeof(uint8_t) >= 2 * PyLong_SHIFT) {
+                            return (uint8_t) (((((uint8_t)digits[1]) << PyLong_SHIFT) | (uint8_t)digits[0]));
+                        }
+                    }
+                    break;
+                case 3:
+                    if (8 * sizeof(uint8_t) > 2 * PyLong_SHIFT) {
+                        if (8 * sizeof(unsigned long) > 3 * PyLong_SHIFT) {
+                            __PYX_VERIFY_RETURN_INT(uint8_t, unsigned long, (((((((unsigned long)digits[2]) << PyLong_SHIFT) | (unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0])))
+                        } else if (8 * sizeof(uint8_t) >= 3 * PyLong_SHIFT) {
+                            return (uint8_t) (((((((uint8_t)digits[2]) << PyLong_SHIFT) | (uint8_t)digits[1]) << PyLong_SHIFT) | (uint8_t)digits[0]));
+                        }
+                    }
+                    break;
+                case 4:
+                    if (8 * sizeof(uint8_t) > 3 * PyLong_SHIFT) {
+                        if (8 * sizeof(unsigned long) > 4 * PyLong_SHIFT) {
+                            __PYX_VERIFY_RETURN_INT(uint8_t, unsigned long, (((((((((unsigned long)digits[3]) << PyLong_SHIFT) | (unsigned long)digits[2]) << PyLong_SHIFT) | (unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0])))
+                        } else if (8 * sizeof(uint8_t) >= 4 * PyLong_SHIFT) {
+                            return (uint8_t) (((((((((uint8_t)digits[3]) << PyLong_SHIFT) | (uint8_t)digits[2]) << PyLong_SHIFT) | (uint8_t)digits[1]) << PyLong_SHIFT) | (uint8_t)digits[0]));
+                        }
+                    }
+                    break;
+            }
+#endif
+#if CYTHON_COMPILING_IN_CPYTHON
+            if (unlikely(Py_SIZE(x) < 0)) {
+                goto raise_neg_overflow;
+            }
+#else
+            {
+                int result = PyObject_RichCompareBool(x, Py_False, Py_LT);
+                if (unlikely(result < 0))
+                    return (uint8_t) -1;
+                if (unlikely(result == 1))
+                    goto raise_neg_overflow;
+            }
+#endif
+            if (sizeof(uint8_t) <= sizeof(unsigned long)) {
+                __PYX_VERIFY_RETURN_INT_EXC(uint8_t, unsigned long, PyLong_AsUnsignedLong(x))
+#ifdef HAVE_LONG_LONG
+            } else if (sizeof(uint8_t) <= sizeof(unsigned PY_LONG_LONG)) {
+                __PYX_VERIFY_RETURN_INT_EXC(uint8_t, unsigned PY_LONG_LONG, PyLong_AsUnsignedLongLong(x))
+#endif
+            }
+        } else {
+#if CYTHON_USE_PYLONG_INTERNALS
+            const digit* digits = ((PyLongObject*)x)->ob_digit;
+            switch (Py_SIZE(x)) {
+                case  0: return (uint8_t) 0;
+                case -1: __PYX_VERIFY_RETURN_INT(uint8_t, sdigit, (sdigit) (-(sdigit)digits[0]))
+                case  1: __PYX_VERIFY_RETURN_INT(uint8_t,  digit, +digits[0])
+                case -2:
+                    if (8 * sizeof(uint8_t) - 1 > 1 * PyLong_SHIFT) {
+                        if (8 * sizeof(unsigned long) > 2 * PyLong_SHIFT) {
+                            __PYX_VERIFY_RETURN_INT(uint8_t, long, -(long) (((((unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0])))
+                        } else if (8 * sizeof(uint8_t) - 1 > 2 * PyLong_SHIFT) {
+                            return (uint8_t) (((uint8_t)-1)*(((((uint8_t)digits[1]) << PyLong_SHIFT) | (uint8_t)digits[0])));
+                        }
+                    }
+                    break;
+                case 2:
+                    if (8 * sizeof(uint8_t) > 1 * PyLong_SHIFT) {
+                        if (8 * sizeof(unsigned long) > 2 * PyLong_SHIFT) {
+                            __PYX_VERIFY_RETURN_INT(uint8_t, unsigned long, (((((unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0])))
+                        } else if (8 * sizeof(uint8_t) - 1 > 2 * PyLong_SHIFT) {
+                            return (uint8_t) ((((((uint8_t)digits[1]) << PyLong_SHIFT) | (uint8_t)digits[0])));
+                        }
+                    }
+                    break;
+                case -3:
+                    if (8 * sizeof(uint8_t) - 1 > 2 * PyLong_SHIFT) {
+                        if (8 * sizeof(unsigned long) > 3 * PyLong_SHIFT) {
+                            __PYX_VERIFY_RETURN_INT(uint8_t, long, -(long) (((((((unsigned long)digits[2]) << PyLong_SHIFT) | (unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0])))
+                        } else if (8 * sizeof(uint8_t) - 1 > 3 * PyLong_SHIFT) {
+                            return (uint8_t) (((uint8_t)-1)*(((((((uint8_t)digits[2]) << PyLong_SHIFT) | (uint8_t)digits[1]) << PyLong_SHIFT) | (uint8_t)digits[0])));
+                        }
+                    }
+                    break;
+                case 3:
+                    if (8 * sizeof(uint8_t) > 2 * PyLong_SHIFT) {
+                        if (8 * sizeof(unsigned long) > 3 * PyLong_SHIFT) {
+                            __PYX_VERIFY_RETURN_INT(uint8_t, unsigned long, (((((((unsigned long)digits[2]) << PyLong_SHIFT) | (unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0])))
+                        } else if (8 * sizeof(uint8_t) - 1 > 3 * PyLong_SHIFT) {
+                            return (uint8_t) ((((((((uint8_t)digits[2]) << PyLong_SHIFT) | (uint8_t)digits[1]) << PyLong_SHIFT) | (uint8_t)digits[0])));
+                        }
+                    }
+                    break;
+                case -4:
+                    if (8 * sizeof(uint8_t) - 1 > 3 * PyLong_SHIFT) {
+                        if (8 * sizeof(unsigned long) > 4 * PyLong_SHIFT) {
+                            __PYX_VERIFY_RETURN_INT(uint8_t, long, -(long) (((((((((unsigned long)digits[3]) << PyLong_SHIFT) | (unsigned long)digits[2]) << PyLong_SHIFT) | (unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0])))
+                        } else if (8 * sizeof(uint8_t) - 1 > 4 * PyLong_SHIFT) {
+                            return (uint8_t) (((uint8_t)-1)*(((((((((uint8_t)digits[3]) << PyLong_SHIFT) | (uint8_t)digits[2]) << PyLong_SHIFT) | (uint8_t)digits[1]) << PyLong_SHIFT) | (uint8_t)digits[0])));
+                        }
+                    }
+                    break;
+                case 4:
+                    if (8 * sizeof(uint8_t) > 3 * PyLong_SHIFT) {
+                        if (8 * sizeof(unsigned long) > 4 * PyLong_SHIFT) {
+                            __PYX_VERIFY_RETURN_INT(uint8_t, unsigned long, (((((((((unsigned long)digits[3]) << PyLong_SHIFT) | (unsigned long)digits[2]) << PyLong_SHIFT) | (unsigned long)digits[1]) << PyLong_SHIFT) | (unsigned long)digits[0])))
+                        } else if (8 * sizeof(uint8_t) - 1 > 4 * PyLong_SHIFT) {
+                            return (uint8_t) ((((((((((uint8_t)digits[3]) << PyLong_SHIFT) | (uint8_t)digits[2]) << PyLong_SHIFT) | (uint8_t)digits[1]) << PyLong_SHIFT) | (uint8_t)digits[0])));
+                        }
+                    }
+                    break;
+            }
+#endif
+            if (sizeof(uint8_t) <= sizeof(long)) {
+                __PYX_VERIFY_RETURN_INT_EXC(uint8_t, long, PyLong_AsLong(x))
+#ifdef HAVE_LONG_LONG
+            } else if (sizeof(uint8_t) <= sizeof(PY_LONG_LONG)) {
+                __PYX_VERIFY_RETURN_INT_EXC(uint8_t, PY_LONG_LONG, PyLong_AsLongLong(x))
+#endif
+            }
+        }
+        {
+#if CYTHON_COMPILING_IN_PYPY && !defined(_PyLong_AsByteArray)
+            PyErr_SetString(PyExc_RuntimeError,
+                            "_PyLong_AsByteArray() not available in PyPy, cannot convert large numbers");
+#else
+            uint8_t val;
+            PyObject *v = __Pyx_PyNumber_IntOrLong(x);
+ #if PY_MAJOR_VERSION < 3
+            if (likely(v) && !PyLong_Check(v)) {
+                PyObject *tmp = v;
+                v = PyNumber_Long(tmp);
+                Py_DECREF(tmp);
+            }
+ #endif
+            if (likely(v)) {
+                int one = 1; int is_little = (int)*(unsigned char *)&one;
+                unsigned char *bytes = (unsigned char *)&val;
+                int ret = _PyLong_AsByteArray((PyLongObject *)v,
+                                              bytes, sizeof(val),
+                                              is_little, !is_unsigned);
+                Py_DECREF(v);
+                if (likely(!ret))
+                    return val;
+            }
+#endif
+            return (uint8_t) -1;
+        }
+    } else {
+        uint8_t val;
+        PyObject *tmp = __Pyx_PyNumber_IntOrLong(x);
+        if (!tmp) return (uint8_t) -1;
+        val = __Pyx_PyInt_As_uint8_t(tmp);
+        Py_DECREF(tmp);
+        return val;
+    }
+raise_overflow:
+    PyErr_SetString(PyExc_OverflowError,
+        "value too large to convert to uint8_t");
+    return (uint8_t) -1;
+raise_neg_overflow:
+    PyErr_SetString(PyExc_OverflowError,
+        "can't convert negative value to uint8_t");
+    return (uint8_t) -1;
 }
 
 /* CIntToPy */

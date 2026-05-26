@@ -10,7 +10,7 @@ from model.models import (
 
 
 class IMUSensor:
-    def __init__(self, port="/dev/ttyUSB0", baud=9600, queue_size=100):
+    def __init__(self, port="/dev/ttyUSB0", baud=115200, queue_size=100):
         self.ser = serial.Serial(port, baud, timeout=0.1)
         self.buffer = bytearray()
 
@@ -98,7 +98,7 @@ class IMUSensor:
             if self.last_group_time:
                 dt = (now - self.last_group_time) * 1000
                 # 你可以关掉print
-                # print(f"📦 周期: {dt:.2f} ms")
+                print(f"📦 周期: {dt:.2f} ms")
             self.last_group_time = now
 
         parser = self.parsers.get(dtype)

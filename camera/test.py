@@ -1,40 +1,27 @@
+import subprocess
+import numpy as np
 import cv2
-import time
 
-cap = cv2.VideoCapture(0, cv2.CAP_V4L2)
+w = 1280
+h = 720
 
-cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*'MJPG'))
-cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
-cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
+cmd = [
+    'ffmpeg',
+    '-f', 'v4l2',
+    '-input_format', 'h264',
+    '-video_size', f'{w}x{h}',
+    '-i', '/dev/video0',
+    '-f', 'rawvideo',
+    '-pix_fmt', 'bgr24',
+    '-'
+]
 
-# ⭐ 推荐先用30fps
-cap.set(cv2.CAP_PROP_FPS, 30)
+pipe = subprocess.Popen(cmd, stdout=subprocess.PIPE)
 
-# ⭐ 曝光控制
-cap.set(cv2.CAP_PROP_AUTO_EXPOSURE, 1)
-cap.set(cv2.CAP_PROP_EXPOSURE, -5)
+raw = pipe.stdout.read(w * h * 3)
 
-# ⭐ 增益
-cap.set(cv2.CAP_PROP_GAIN, 0)
+frame = np.frombuffer(raw, dtype=np.uint8).reshape((h, w, 3))
 
-# ⭐ 白平衡
-cap.set(cv2.CAP_PROP_AUTO_WB, 0)
+cv2.imwrite("/home/pi/test.jpg", frame)
 
-time.sleep(1)
-
-# ⭐ 丢帧稳定
-for _ in range(20):
-    cap.read()
-
-ret, frame = cap.read()
-
-if ret:
-    cv2.imwrite("test.jpg", frame)
-    print("✅ OK")
-else:
-    print("❌ FAIL")
-
-cap.release()
-
-
-
+pipe.kill()

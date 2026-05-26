@@ -3,7 +3,7 @@
 from setuptools import setup
 from Cython.Build import cythonize
 
-## cd /home/pi/Desktop/raspberry_car/lidar
+## cd /home/raspicar/Desktop/raspberry_car/lidar
  ## python3 setup.py build_ext --inplace
 
 setup(

@@ -1,117 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="PublishConfigData" autoUpload="Always" serverName="pi@bj.zyfrp.vip:7777 password (2)" remoteFilesAllowedToDisappearOnAutoupload="false">
+  <component name="PublishConfigData" autoUpload="Always" serverName="pi@bj.zyfrp.vip:7777 agent" remoteFilesAllowedToDisappearOnAutoupload="false">
     <serverData>
-      <paths name="orangepi@192.168.5.126:22 password">
+      <paths name="pi@bj.zyfrp.vip:7777 agent">
         <serverdata>
           <mappings>
-            <mapping local="$PROJECT_DIR$" web="/" />
+            <mapping deploy="/home/raspicar/Desktop/raspberry_car" local="$PROJECT_DIR$" />
           </mappings>
-        </serverdata>
-      </paths>
-      <paths name="orangepi@192.168.5.126:22 password (2)">
-        <serverdata>
-          <mappings>
-            <mapping local="$PROJECT_DIR$" web="/" />
-          </mappings>
-        </serverdata>
-      </paths>
-      <paths name="orangepi@192.168.5.126:22 password (3)">
-        <serverdata>
-          <mappings>
-            <mapping local="$PROJECT_DIR$" web="/" />
-          </mappings>
-        </serverdata>
-      </paths>
-      <paths name="orangepi@192.168.5.136:22 password">
-        <serverdata>
-          <mappings>
-            <mapping local="$PROJECT_DIR$" web="/" />
-          </mappings>
-        </serverdata>
-      </paths>
-      <paths name="orangepi@192.168.5.194:22 password">
-        <serverdata>
-          <mappings>
-            <mapping local="$PROJECT_DIR$" web="/" />
-          </mappings>
-        </serverdata>
-      </paths>
-      <paths name="pi@192.168.137.157:22 password">
-        <serverdata>
-          <mappings>
-            <mapping deploy="/home/pi/Desktop" local="$PROJECT_DIR$" />
-          </mappings>
-        </serverdata>
-      </paths>
-      <paths name="pi@192.168.5.126:22 password">
-        <serverdata>
-          <mappings>
-            <mapping local="$PROJECT_DIR$" web="/" />
-          </mappings>
-        </serverdata>
-      </paths>
-      <paths name="pi@192.168.5.138:22 password">
-        <serverdata>
-          <mappings>
-            <mapping local="$PROJECT_DIR$" web="/" />
-          </mappings>
-        </serverdata>
-      </paths>
-      <paths name="pi@192.168.5.138:22 password (2)">
-        <serverdata>
-          <mappings>
-            <mapping local="$PROJECT_DIR$" web="/" />
-          </mappings>
-        </serverdata>
-      </paths>
-      <paths name="pi@192.168.5.150:22 password">
-        <serverdata>
-          <mappings>
-            <mapping local="$PROJECT_DIR$" web="/" />
-          </mappings>
-        </serverdata>
-      </paths>
-      <paths name="pi@192.168.5.166:22 password">
-        <serverdata>
-          <mappings>
-            <mapping local="$PROJECT_DIR$" web="/" />
-          </mappings>
-        </serverdata>
-      </paths>
-      <paths name="pi@bj.zyfrp.vip:7777 password">
-        <serverdata>
-          <mappings>
-            <mapping deploy="/home/pi/Desktop" local="$PROJECT_DIR$" />
-          </mappings>
-        </serverdata>
-      </paths>
-      <paths name="pi@bj.zyfrp.vip:7777 password (2)">
-        <serverdata>
-          <mappings>
-            <mapping deploy="/home/pi/Desktop/raspberry_car" local="$PROJECT_DIR$" />
-          </mappings>
-        </serverdata>
-      </paths>
-      <paths name="root@192.168.5.136:22 password">
-        <serverdata>
-          <mappings>
-            <mapping local="$PROJECT_DIR$" web="/" />
-          </mappings>
-        </serverdata>
-      </paths>
-      <paths name="root@1zo7n4qbgf8yvarmakea100.funhpc.com:30691 password">
-        <serverdata>
-          <mappings>
-            <mapping local="$PROJECT_DIR$" web="/" />
-          </mappings>
-        </serverdata>
-      </paths>
-      <paths name="root@v3tjcypfkl2bxpjosnow.deepln.com:42405 password">
-        <serverdata>
-          <mappings>
-            <mapping local="$PROJECT_DIR$" web="/" />
-          </mappings>
+          <excludedPaths>
+            <excludedPath local="true" path="$PROJECT_DIR$/.continue" />
+            <excludedPath local="true" path="$PROJECT_DIR$/.venv" />
+            <excludedPath local="true" path="$PROJECT_DIR$/.idea" />
+          </excludedPaths>
         </serverdata>
       </paths>
     </serverData>

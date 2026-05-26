@@ -1,6 +1,6 @@
 from  imu.Imu import IMUSensor
 
-imu = IMUSensor("/dev/ttyUSB0", 9600)
+imu = IMUSensor("/dev/ttyUSB0", 115200)
 
 imu.start()
 
