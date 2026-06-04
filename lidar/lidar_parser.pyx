@@ -35,6 +35,9 @@ cdef class LidarParser:
             if self.buffer[i] != 0xAA or self.buffer[i+1] != 0x55:
                 i += 1
                 continue
+            is_start=False
+            if self.buffer[i+2] & 0x01 == 1:
+                is_start = True
 
             lsn = self.buffer[i+3]
             packet_len = 10 + lsn*3
@@ -45,23 +48,25 @@ cdef class LidarParser:
             cs_calc = 0
             # CSL: 校验位之前所有字节（第三位 M&T 到 LSA）两两 XOR
             for k in range(0, 8, 2):
-                val = self.buffer[i + k] | (self.buffer[i + k + 1] << 8)
+                val = self.buffer[i + k] << 8| (self.buffer[i + k + 1] )
                 cs_calc ^= val
 
             # CSH: 每三个字节，前两个字节组合成16位小端整数异或
             for k in range(10, 10 + lsn * 3, 3):
-                val1 = self.buffer[i + k] | (self.buffer[i + k + 1] << 8)  # Si_L, Si_2nd
-                val2 = self.buffer[i + k + 2] | (0x00 << 8)  # Si_H, 高8位补0
+                val1 = self.buffer[i + k] << 8  # Si_L -> XX00
+                val2 = self.buffer[i + k + 1] << 8  # Si_2nd -> XX00
+                val3 = self.buffer[i + k + 2]  # Si_H -> 00XX
                 cs_calc ^= val1
                 cs_calc ^= val2
+                cs_calc ^= val3
 
             # 取低16位（小端存储）
             cs_calc &= 0xFFFF
-            cs_received = self.buffer[i + 8] | (self.buffer[i + 9] << 8)
+            cs_received = self.buffer[i + 8]<< 8 | (self.buffer[i + 9] )
 
-            # if cs_calc != cs_received:
-            #     i += 1
-            #     continue
+            if cs_calc != cs_received:
+                  i += 1
+                  continue
 
             # --- 角度 ---
             fsa_raw = self.buffer[i+4] | (self.buffer[i+5]<<8)
@@ -91,8 +96,9 @@ cdef class LidarParser:
                     "high_ref": high_ref,
                     "angle": angle
                 })
-
+            raw_packet = bytes(self.buffer[i:i + packet_len])
             result.append({
+                "is_start":is_start,
                 "LSN": lsn,
                 "FSA_raw": fsa_raw,
                 "LSA_raw": lsa_raw,
@@ -101,6 +107,9 @@ cdef class LidarParser:
                 "start_idx": i,
                 "packet_len": packet_len,
                 "Si": si_list,
+                "raw": raw_packet,
+                "cs_calc": cs_calc,
+                "real_cs_calc": cs_received
 
             })
 
