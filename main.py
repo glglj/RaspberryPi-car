@@ -20,8 +20,11 @@ def main():
             if result is None:
                 continue
             ts, frame = result
-            for chunk_ts, payload in LidarSensor.iter_payloads(ts, frame):
-                udp.send(MSG_LIDAR, chunk_ts, payload)
+            payload = LidarSensor.pack_frame(ts, frame)
+            # DEBUG: 打印最后3个点的原始角度
+            tail_angles = [f"{p[0]:.1f}" for p in frame[-3:]]
+
+            udp.send(MSG_LIDAR, ts, payload)
 
     def imu_loop():
         while not stop_event.is_set():

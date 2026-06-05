@@ -34,10 +34,17 @@ class LidarSensor:
             for pkg in pkgs:
                 # is_start 表示新一圈开始，提交上一圈
                 if pkg.get("is_start") and current:
+                    # DEBUG: 检查 frame 内角度是否单调递增
+                    angles = [p[0] for p in current]
+                    min_a, max_a = min(angles), max(angles)
+                    drops = sum(1 for i in range(1, len(angles)) if angles[i] < angles[i-1])
+
                     self._enqueue(current)
+
                     current = []
                 for si in pkg["Si"]:
                     current.append((si["angle"], si["distance"]))
+
 
     def _enqueue(self, frame):
         """将完整的一圈数据加入队列，队列满时丢弃最旧的一圈。"""
@@ -64,20 +71,24 @@ class LidarSensor:
             return None
 
     @staticmethod
-    def iter_payloads(ts, frame, chunk_size=180):
-        """将一圈雷达帧拆成 MTU 安全的分片 payload。
+    def pack_frame(ts, frame):
+        """将一圈雷达数据打包为单个 UDP payload（位压缩，不分片）。
 
-        Yields:
-            (chunk_ts, payload_bytes) 可直接传给 UdpSender.send()
+        每点 20 bit 存 3 字节:
+          - 角度索引 9 bit (角度/0.9°, 精度 0.9°, 范围 0~459°)
+          - 距离      11 bit (距离/10mm, 精度 10mm, 范围 0~20.47m)
+        载荷格式: | ts (uint64, 8B) | N × 3B packed points |
         """
-        total = (len(frame) + chunk_size - 1) // chunk_size
-        for idx in range(total):
-            chunk = frame[idx * chunk_size : (idx + 1) * chunk_size]
-            points_data = b"".join(
-                struct.pack("<ff", angle, dist) for angle, dist in chunk
-            )
-            payload = struct.pack("<QBB", ts, idx, total) + points_data
-            yield ts, payload
+        buf = bytearray(8 + len(frame) * 3)
+        struct.pack_into("<Q", buf, 0, ts)
+        offset = 8
+        for angle, distance in frame:
+            ai = min(511, int(angle / 0.9 + 0.5))      # 9 bits
+            ds = min(2047, int(distance / 10 + 0.5))   # 11 bits
+            packed = (ai << 11) | ds                    # 20 bits
+            buf[offset:offset + 3] = packed.to_bytes(3, 'little')
+            offset += 3
+        return bytes(buf)
 
     def update(self):
         """供主循环周期性调用，兼容旧接口。后台线程已处理所有读取工作。"""

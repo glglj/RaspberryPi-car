@@ -73,6 +73,9 @@ cdef class LidarParser:
             lsa_raw = self.buffer[i+6] | (self.buffer[i+7]<<8)
             angle_fsa = (fsa_raw >> 1) / 64.0
             angle_lsa = (lsa_raw >> 1) / 64.0
+            # 处理角度跨越 0° 边界（FSA≈358°, LSA≈14° → LSA 应看作 374°）
+            if angle_lsa < angle_fsa:
+                angle_lsa += 360.0
             if lsn > 1:
                 angle_step = (angle_lsa - angle_fsa) / (lsn - 1)
             else:
