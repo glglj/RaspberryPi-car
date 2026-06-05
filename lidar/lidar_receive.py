@@ -1,7 +1,9 @@
+import time
+import struct
 import serial
 import threading
 import queue
-from lidar_parser import LidarParser
+from lidar.lidar_parser import LidarParser
 
 
 class LidarSensor:
@@ -39,26 +41,43 @@ class LidarSensor:
 
     def _enqueue(self, frame):
         """将完整的一圈数据加入队列，队列满时丢弃最旧的一圈。"""
+        ts = time.time_ns()
         if self.frame_queue.full():
             try:
                 self.frame_queue.get_nowait()
             except queue.Empty:
                 pass
         try:
-            self.frame_queue.put_nowait(frame)
+            self.frame_queue.put_nowait((ts, frame))
         except queue.Full:
             pass
 
-    def get_frame(self):
+    def get_frame(self, block=True, timeout=None):
         """获取最近的一圈完整雷达数据。
 
         Returns:
-            list of (angle, distance) 或 None（暂无新数据）
+            (timestamp, list of (angle, distance)) 或 None（超时时）
         """
         try:
-            return self.frame_queue.get_nowait()
+            return self.frame_queue.get(block=block, timeout=timeout)
         except queue.Empty:
             return None
+
+    @staticmethod
+    def iter_payloads(ts, frame, chunk_size=180):
+        """将一圈雷达帧拆成 MTU 安全的分片 payload。
+
+        Yields:
+            (chunk_ts, payload_bytes) 可直接传给 UdpSender.send()
+        """
+        total = (len(frame) + chunk_size - 1) // chunk_size
+        for idx in range(total):
+            chunk = frame[idx * chunk_size : (idx + 1) * chunk_size]
+            points_data = b"".join(
+                struct.pack("<ff", angle, dist) for angle, dist in chunk
+            )
+            payload = struct.pack("<QBB", ts, idx, total) + points_data
+            yield ts, payload
 
     def update(self):
         """供主循环周期性调用，兼容旧接口。后台线程已处理所有读取工作。"""
@@ -77,9 +96,7 @@ if __name__ == "__main__":
         while True:
             frame = lidar.get_frame()
             if frame:
-                angles = [p[0] for p in frame]
-                print(f"收到一圈: {len(frame)} 个点, "
-                      f"角度范围 {min(angles):.1f}° ~ {max(angles):.1f}°")
+                print(f"收到一圈: {len(frame)} 个点, ")
             time.sleep(0.01)
     except KeyboardInterrupt:
         lidar.stop()

@@ -1,5 +1,9 @@
 from dataclasses import dataclass
 
+# 消息类型常量
+MSG_LIDAR = 0x01
+MSG_IMU   = 0x03
+
 
 @dataclass
 class IMUAccel:

@@ -19,8 +19,6 @@ class IMUSensor:
         self.running = False
         self.thread = None
 
-        self.last_group_time = None
-
         # parser注册表
         self.parsers = {
             0x51: self._parse_acc,
@@ -48,6 +46,21 @@ class IMUSensor:
 
     def get(self, block=True, timeout=None):
         return self.queue.get(block=block, timeout=timeout)
+
+    @staticmethod
+    def pack(item):
+        """将 IMU 数据对象打包为二进制 payload，不含任何协议头。"""
+        if isinstance(item, IMUAccel):
+            return struct.pack("<BBffff", 0x51, 4, item.ax, item.ay, item.az, item.temp)
+        elif isinstance(item, IMUGyro):
+            return struct.pack("<BBfff", 0x52, 3, item.gx, item.gy, item.gz)
+        elif isinstance(item, IMUAngle):
+            return struct.pack("<BBfff", 0x53, 3, item.roll, item.pitch, item.yaw)
+        elif isinstance(item, IMUMag):
+            return struct.pack("<BBfff", 0x54, 3, item.mx, item.my, item.mz)
+        elif isinstance(item, IMUQuat):
+            return struct.pack("<BBffff", 0x59, 4, item.q0, item.q1, item.q2, item.q3)
+        return b""
 
     # =========================
     # 线程
@@ -92,25 +105,17 @@ class IMUSensor:
         if calc_crc != crc:
             return
 
-        # 时间统计（只在0x51触发）
-        if dtype == 0x51:
-            now = time.time()
-            if self.last_group_time:
-                dt = (now - self.last_group_time) * 1000
-                # 你可以关掉print
-                print(f"📦 周期: {dt:.2f} ms")
-            self.last_group_time = now
-
         parser = self.parsers.get(dtype)
         if parser:
             obj = parser(data)
             if obj:
+                ts = time.time_ns()
                 if self.queue.full():
                     try:
                         self.queue.get_nowait()
-                    except:
+                    except Exception:
                         pass
-                self.queue.put(obj)
+                self.queue.put((ts, obj))
 
     # =========================
     # 小端解析工具
