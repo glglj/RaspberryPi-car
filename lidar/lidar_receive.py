@@ -18,7 +18,7 @@ class LidarSensor:
     def __init__(self, port="/dev/serial0", baudrate=230400):
         self.parser = LidarParser()
         self.uart = serial.Serial(port=port, baudrate=baudrate, timeout=0.1)
-        self.frame_queue = queue.Queue(maxsize=50)
+        self.frame_queue = queue.Queue(maxsize=1)
         self._running = True
         self._thread = threading.Thread(target=self._read_loop, daemon=True)
         self._thread.start()
