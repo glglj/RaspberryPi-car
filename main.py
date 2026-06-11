@@ -31,7 +31,7 @@ def main():
     encoder = EncoderSensor(pi)
 
     # ---- UDP ----
-    udp = UdpSender("bj.zyfrp.vip", 5005)
+    udp = UdpSender("am.zyfrp.vip", 5005)
     receiver = UdpReceiver(port=5006)
 
     # ---- 运动控制 ----

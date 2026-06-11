@@ -25,13 +25,6 @@ class IMUSensor:
         self.queue = Queue(maxsize=queue_size)
         self.running = False
         self.thread = None
-        self._yaw_lock = threading.Lock()
-        self._latest_yaw = 0.0
-
-    @property
-    def latest_yaw(self):
-        with self._yaw_lock:
-            return self._latest_yaw
 
     # =========================
     # 外部接口
@@ -80,12 +73,6 @@ class IMUSensor:
                     continue
                 obj = make(f)
                 ts = time.time_ns()
-
-                # 更新 latest_yaw 供运动控制使用
-                if isinstance(obj, IMUAngle):
-                    with self._yaw_lock:
-                        self._latest_yaw = obj.yaw
-
                 if self.queue.full():
                     try:
                         self.queue.get_nowait()
