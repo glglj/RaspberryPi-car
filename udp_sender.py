@@ -17,14 +17,8 @@ class UdpSender:
         now_ns = time.perf_counter_ns()
 
         # 检查距离上次调用间隔
-        if self.last_call_ns is not None:
-            gap_ms = (now_ns - self.last_call_ns) / 1e6
+       
 
-            if gap_ms > 100:
-                print(
-                    f"[STALL] gap={gap_ms:.1f}ms "
-                    f"(线程可能被阻塞)"
-                )
 
         self.last_call_ns = now_ns
 
