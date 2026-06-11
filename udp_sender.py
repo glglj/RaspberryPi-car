@@ -49,10 +49,3 @@ class UdpSender:
         if send_us > self.max_send_us:
             self.max_send_us = send_us
 
-        if send_us > 500:
-            print(
-                f"[SEND] "
-                f"{send_us:.1f}us "
-                f"size={len(payload)} "
-                f"max={self.max_send_us:.1f}us"
-            )
