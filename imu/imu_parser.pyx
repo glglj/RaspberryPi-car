@@ -7,14 +7,22 @@ from libc.stdint cimport uint8_t, int16_t
 
 
 cdef class ImuParser:
-    """IMU 帧解析器（Cython 加速），替代纯 Python 的 bytearray 逐字节扫描。"""
+    """IMU 帧解析器（Cython 加速）。自动将 0x51→0x59 递增序列打包为一个周期。"""
     cdef uint8_t buffer[4096]
     cdef int buf_len
+    cdef list _bundle          # 当前周期的帧列表
+    cdef int _last_type        # 上一条帧的类型，用于检测周期边界
 
     def __cinit__(self):
         self.buf_len = 0
+        self._bundle = []
+        self._last_type = 0
 
     cpdef list feed(self, bytes data):
+        """喂入原始字节，返回完整周期列表。
+        每个周期是一个 list[dict]，按 0x51→0x52→0x53→0x54→0x59 顺序排列。
+        跨周期的残余帧留在内部 _bundle 中，等待下次凑齐。
+        """
         cdef int n = len(data)
         cdef int i = 0
         cdef int k, remaining
@@ -51,6 +59,13 @@ cdef class ImuParser:
                 i += 1
                 continue
 
+            # ---- 周期边界检测 ----
+            # 帧类型从 0x51 到 0x59 递增，如果新的 type <= 上次的 type，
+            # 说明 IMU 已经开始了新的一轮
+            if dtype <= self._last_type and self._bundle:
+                result.append(self._bundle)
+                self._bundle = []
+
             # 根据类型解析 data[2:10]
             raw0 = <int16_t>(self.buffer[i + 2] | (self.buffer[i + 3] << 8))
             raw1 = <int16_t>(self.buffer[i + 4] | (self.buffer[i + 5] << 8))
@@ -62,26 +77,27 @@ cdef class ImuParser:
                 v1 = raw1 * (16.0 / 32768.0)
                 v2 = raw2 * (16.0 / 32768.0)
                 v3 = raw3 / 100.0
-                result.append({"type": dtype, "ax": v0, "ay": v1, "az": v2, "temp": v3})
+                self._bundle.append({"type": dtype, "ax": v0, "ay": v1, "az": v2, "temp": v3})
             elif dtype == 0x52:        # GYRO
                 v0 = raw0 * (2000.0 / 32768.0)
                 v1 = raw1 * (2000.0 / 32768.0)
                 v2 = raw2 * (2000.0 / 32768.0)
-                result.append({"type": dtype, "gx": v0, "gy": v1, "gz": v2})
+                self._bundle.append({"type": dtype, "gx": v0, "gy": v1, "gz": v2})
             elif dtype == 0x53:        # ANGLE
                 v0 = raw0 * (180.0 / 32768.0)
                 v1 = raw1 * (180.0 / 32768.0)
                 v2 = raw2 * (180.0 / 32768.0)
-                result.append({"type": dtype, "roll": v0, "pitch": v1, "yaw": v2})
+                self._bundle.append({"type": dtype, "roll": v0, "pitch": v1, "yaw": v2})
             elif dtype == 0x54:        # MAG
-                result.append({"type": dtype, "mx": raw0, "my": raw1, "mz": raw2})
+                self._bundle.append({"type": dtype, "mx": raw0, "my": raw1, "mz": raw2})
             elif dtype == 0x59:        # QUAT
                 v0 = raw0 / 32768.0
                 v1 = raw1 / 32768.0
                 v2 = raw2 / 32768.0
                 v3 = raw3 / 32768.0
-                result.append({"type": dtype, "q0": v0, "q1": v1, "q2": v2, "q3": v3})
+                self._bundle.append({"type": dtype, "q0": v0, "q1": v1, "q2": v2, "q3": v3})
 
+            self._last_type = dtype
             i += 11
 
         # 残留数据移到 buffer 头部
@@ -92,3 +108,12 @@ cdef class ImuParser:
             self.buf_len = remaining
 
         return result
+
+    cpdef object flush(self):
+        """强制返回当前未完成的残余帧（超时兜底用），返回 None 表示没有残余。"""
+        if self._bundle:
+            bundle = self._bundle
+            self._bundle = []
+            self._last_type = 0
+            return bundle
+        return None

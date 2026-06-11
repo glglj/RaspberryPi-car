@@ -1,4 +1,4 @@
-from  imu.Imu import IMUSensor
+from  imu.imu import IMUSensor
 
 imu = IMUSensor("/dev/ttyUSB0", 115200)
 

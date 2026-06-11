@@ -31,7 +31,8 @@ def main():
     encoder = EncoderSensor(pi)
 
     # ---- UDP ----
-    udp = UdpSender("am.zyfrp.vip", 5005)
+    udplidar = UdpSender("bj.zyfrp.vip", 5005)
+    udpimu = UdpSender("am.zyfrp.vip", 5005)
     receiver = UdpReceiver(port=5006)
 
     # ---- 运动控制 ----
@@ -48,17 +49,16 @@ def main():
                 continue
             ts, frame = result
             payload = LidarSensor.pack_frame(ts, frame)
-            udp.send(MSG_LIDAR, ts, payload)
+            udplidar.send(MSG_LIDAR, ts, payload)
 
     # ---- imu 上报线程 ----
     def imu_loop():
         while not stop_event.is_set():
             try:
-                ts, item = imu.get(timeout=0.5)
+                ts, payload = imu.get(timeout=0.5)
             except Exception:
                 continue
-            payload = IMUSensor.pack(item)
-            udp.send(MSG_IMU, ts, payload)
+            udpimu.send(MSG_IMU, ts, payload)
 
     # ---- 指令接收线程 ----
     def cmd_recv_loop():
