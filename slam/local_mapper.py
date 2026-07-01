@@ -1,7 +1,7 @@
 """局部栅格地图构建器
 
 维护以机器人当前位置为中心的局部2D占据栅格地图。
-使用Bresenham射线投射更新栅格概率。
+使用Bresenham射线投射更新栅格概率 (优先 Cython 加速)。
 当地图窗口需要移动时，转出旧区域作为子图。
 """
 
@@ -9,6 +9,48 @@ import math
 import numpy as np
 import time
 from model.models import LocalMap
+
+# 尝试导入 Cython 加速的 Bresenham 批量更新函数
+try:
+    from slam.local_mapper_fast import bresenham_update as _bresenham_fast
+except ImportError:
+    # ---- 纯 Python 回退 ----
+    def _bresenham_fast(grid, gw, gh, origin_x, origin_y, inv_res,
+                        rx, ry, endpoints):
+        x0 = int((rx - origin_x) * inv_res)
+        y0 = int((ry - origin_y) * inv_res)
+        for i in range(endpoints.shape[0]):
+            x, y = x0, y0
+            x1 = int((endpoints[i, 0] - origin_x) * inv_res)
+            y1 = int((endpoints[i, 1] - origin_y) * inv_res)
+            dx = abs(x1 - x)
+            dy = -abs(y1 - y)
+            sx = 1 if x < x1 else -1
+            sy = 1 if y < y1 else -1
+            err = dx + dy
+            while True:
+                is_end = (x == x1 and y == y1)
+                if 0 <= x < gw and 0 <= y < gh:
+                    val = grid[y, x]
+                    if is_end:
+                        if val <= 60:
+                            grid[y, x] = val + 40
+                    else:
+                        if val >= -80:
+                            grid[y, x] = val - 20
+                if is_end:
+                    break
+                e2 = 2 * err
+                if e2 >= dy:
+                    if x == x1:
+                        break
+                    err += dy
+                    x += sx
+                if e2 <= dx:
+                    if y == y1:
+                        break
+                    err += dx
+                    y += sy
 
 
 class LocalMapper:
@@ -75,19 +117,35 @@ class LocalMapper:
         if not self._in_bounds(rx, ry):
             return
 
-        # 对每个扫描点执行 Bresenham 射线更新
-        for angle, dist in scan_points:
+        # 预计算所有扫描终点的世界坐标
+        cos_theta = math.cos(robot_pose.theta)
+        sin_theta = math.sin(robot_pose.theta)
+        n = len(scan_points)
+
+        if n == 0:
+            return
+
+        endpoints = np.empty((n, 2), dtype=np.float64)
+        valid_count = 0
+        for i, (angle, dist) in enumerate(scan_points):
             if dist <= 0.02 or dist >= 20.0:
                 continue
-
-            # 扫描终点在世界坐标系中的位置
             world_angle = robot_pose.theta + angle
-            end_wx = robot_pose.x + dist * math.cos(world_angle)
-            end_wy = robot_pose.y + dist * math.sin(world_angle)
-            ex, ey = self._world_to_grid(end_wx, end_wy)
+            endpoints[valid_count, 0] = robot_pose.x + dist * math.cos(world_angle)
+            endpoints[valid_count, 1] = robot_pose.y + dist * math.sin(world_angle)
+            valid_count += 1
 
-            # Bresenham 射线: 从机器人到终点
-            self._bresenham_update(rx, ry, ex, ey)
+        if valid_count == 0:
+            return
+
+        endpoints = endpoints[:valid_count]
+
+        # 调用 Cython 加速的 Bresenham（或回退到 Python）
+        _bresenham_fast(
+            self.grid, self.grid_width, self.grid_height,
+            self._origin_x, self._origin_y, 1.0 / self.grid_resolution,
+            robot_pose.x, robot_pose.y, endpoints,
+        )
 
         self._update_count += 1
 
