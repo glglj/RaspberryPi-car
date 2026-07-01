@@ -175,10 +175,14 @@ def main():
         """SLAM主循环: 里程计 → 扫描匹配 → 局部建图 → 关键帧发送"""
         last_scan_result = None
         last_odom_time = 0.0
+        last_match_pose = None   # 上次扫描匹配时的位姿 (用于跳帧)
+        loop_count = 0
+        match_skip_dist = 0.05   # 移动超过 5cm 才做扫描匹配
 
         while not stop_event.is_set():
+            loop_count += 1
+
             # 1. 更新里程计 (使用编码器累计值 + IMU偏航角)
-            #    不阻塞，如果没有新数据就跳过
             now = time.time()
             if now - last_odom_time >= 0.01:  # 最多100Hz
                 yaw = imu.latest_yaw
@@ -198,25 +202,36 @@ def main():
 
             scan_ts, scan_points = last_scan_result
 
-            # 过滤: 转换为 [(angle_rad, distance_m)] 格式
-            # LiDAR frame 返回的是 [(angle, distance), ...]
+            # 过滤: 转换为 [(angle_rad, distance_m)] 格式 (mm → m)
             filtered_scan = [
-                (math.radians(a), d)
+                (math.radians(a), d / 1000.0)
                 for a, d in scan_points
-                if 0.05 < d < 20.0
+                if 100 < d < 20000  # 0.1m ~ 20m, 整数比较更快
             ]
             if len(filtered_scan) < 20:
                 time.sleep(0.01)
                 continue
 
-            # 3. 扫描匹配: 当前扫描 vs 局部地图
-            prior_pose = odometry.get_pose()
-            local_map = local_mapper.get_local_map()
-            corrected_pose, match_score = scan_matcher.match(
-                filtered_scan, prior_pose, local_map)
+            # 2.5. 跳帧: 如果机器人没怎么动，跳过本次扫描匹配
+            current_pose = odometry.get_pose()
+            do_match = True
+            if last_match_pose is not None:
+                dx = current_pose.x - last_match_pose.x
+                dy = current_pose.y - last_match_pose.y
+                if dx * dx + dy * dy < match_skip_dist * match_skip_dist:
+                    do_match = False
 
-            # 如果匹配成功，用修正后的位姿；否则信任里程计
-            final_pose = corrected_pose if match_score >= scan_matcher.min_match_score else prior_pose
+            # 3. 扫描匹配: 当前扫描 vs 局部地图
+            if do_match:
+                local_map = local_mapper.get_local_map()
+                corrected_pose, match_score = scan_matcher.match(
+                    filtered_scan, current_pose, local_map)
+
+                # 匹配成功用修正位姿，否则信任里程计
+                final_pose = corrected_pose if match_score >= scan_matcher.min_match_score else current_pose
+                last_match_pose = final_pose
+            else:
+                final_pose = current_pose
 
             # 4. 更新局部地图
             local_mapper.update(filtered_scan, final_pose)
@@ -231,6 +246,17 @@ def main():
                 print(f"[SLAM] 关键帧 #{kf.id} 已发送, "
                       f"位姿=({final_pose.x:.3f}, {final_pose.y:.3f}, "
                       f"{math.degrees(final_pose.theta):.1f}°)")
+
+            # 定期输出状态 (每100轮 ~ 每2秒)
+            if loop_count % 100 == 0:
+                g = local_mapper.grid
+                occ = (g >= 30).sum()
+                free = (g <= -30).sum()
+                stats = scan_matcher.get_stats()
+                print(f"[SLAM] 位姿=({final_pose.x:.2f},{final_pose.y:.2f}), "
+                      f"栅格 占据={occ} 空闲={free}, "
+                      f"匹配={stats['success_rate']:.0%} "
+                      f"得分={stats['last_score']:.0f}")
 
             time.sleep(0.02)  # ~50Hz SLAM loop
 
@@ -278,7 +304,7 @@ def main():
             pose = odometry.get_pose()
             filename = os.path.join(
                 MAP_SAVE_DIR,
-                time.strftime("map_%Y%m%d_%H%M%S.ppm")
+                time.strftime("map_%Y%m%d_%H%M%S.png")
             )
             local_mapper.save_debug_image(filename, robot_pose=pose)
             time.sleep(MAP_SAVE_INTERVAL)

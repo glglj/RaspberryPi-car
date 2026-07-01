@@ -95,6 +95,7 @@ class IMUSensor:
                     if partial:
                         self._extract_imu_state(partial)
                         self._put(time.time_ns(), _pack_bundle(partial))
+                time.sleep(0.001)  # 防止无数据时空转 CPU
                 continue
 
             self._last_data_ns = time.time_ns()

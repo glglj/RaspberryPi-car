@@ -250,7 +250,7 @@ class LocalMapper:
         return self._world_to_grid(self._robot_x, self._robot_y)
 
     def save_debug_image(self, filepath, robot_pose=None):
-        """保存地图为 PPM 图片
+        """保存地图为 PNG 图片
 
         颜色编码:
           黑色 = 占据 (grid >= 30)
@@ -258,6 +258,8 @@ class LocalMapper:
           灰色 = 未知 (其他)
           红色十字 = 机器人位置
         """
+        from PIL import Image
+
         h, w = self.grid.shape
         rgb = np.zeros((h, w, 3), dtype=np.uint8)
 
@@ -275,9 +277,8 @@ class LocalMapper:
                 rgb[max(0, ry-2):min(h, ry+3), rx, :] = [255, 0, 0]
                 rgb[ry, max(0, rx-2):min(w, rx+3), :] = [255, 0, 0]
 
-        with open(filepath, 'wb') as f:
-            f.write(f"P6\n{w} {h}\n255\n".encode())
-            f.write(rgb.tobytes())
+        img = Image.fromarray(rgb, mode='RGB')
+        img.save(filepath, format='PNG')
 
     def reset(self):
         """重置地图"""
