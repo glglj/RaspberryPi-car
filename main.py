@@ -178,8 +178,10 @@ def main():
         last_match_pose = None   # 上次扫描匹配时的位姿 (用于跳帧)
         loop_count = 0
         match_skip_dist = 0.05   # 移动超过 5cm 才做扫描匹配
+        map_update_skip = 3      # 静止时每 N 帧才更新一次地图
 
         while not stop_event.is_set():
+            t_start = time.time()
             loop_count += 1
 
             # 1. 更新里程计 (使用编码器累计值 + IMU偏航角)
@@ -223,18 +225,25 @@ def main():
 
             # 3. 扫描匹配: 当前扫描 vs 局部地图
             if do_match:
-                local_map = local_mapper.get_local_map()
+                t_match = time.time()
                 corrected_pose, match_score = scan_matcher.match(
-                    filtered_scan, current_pose, local_map)
+                    filtered_scan, current_pose, local_mapper)
+                t_match = time.time() - t_match
 
                 # 匹配成功用修正位姿，否则信任里程计
                 final_pose = corrected_pose if match_score >= scan_matcher.min_match_score else current_pose
                 last_match_pose = final_pose
             else:
                 final_pose = current_pose
+                t_match = 0
 
-            # 4. 更新局部地图
-            local_mapper.update(filtered_scan, final_pose)
+            # 4. 更新局部地图 (静止时跳过, 节省 Bresenham 开销)
+            t_map = 0
+            if do_match or loop_count % map_update_skip == 0:
+                t_map = time.time()
+                map_scan = filtered_scan[::3] if len(filtered_scan) > 120 else filtered_scan
+                local_mapper.update(map_scan, final_pose)
+                t_map = time.time() - t_map
 
             # 5. 关键帧检测和发送
             if keyframe_selector.should_create(final_pose):
@@ -247,8 +256,10 @@ def main():
                       f"位姿=({final_pose.x:.3f}, {final_pose.y:.3f}, "
                       f"{math.degrees(final_pose.theta):.1f}°)")
 
-            # 定期输出状态 (每100轮 ~ 每2秒)
-            if loop_count % 100 == 0:
+            t_elapsed = time.time() - t_start
+
+            # 定期输出状态 + 耗时 (每50轮)
+            if loop_count % 50 == 0:
                 g = local_mapper.grid
                 occ = (g >= 30).sum()
                 free = (g <= -30).sum()
@@ -256,9 +267,9 @@ def main():
                 print(f"[SLAM] 位姿=({final_pose.x:.2f},{final_pose.y:.2f}), "
                       f"栅格 占据={occ} 空闲={free}, "
                       f"匹配={stats['success_rate']:.0%} "
-                      f"得分={stats['last_score']:.0f}")
+                      f"耗时 match={t_match*1000:.0f}ms map={t_map*1000:.0f}ms total={t_elapsed*1000:.0f}ms")
 
-            time.sleep(0.02)  # ~50Hz SLAM loop
+            time.sleep(0.05)  # ~20Hz, 雷达只有 5-10Hz, 不需要 50Hz
 
     # ---- 指令接收线程 ----
     def cmd_recv_loop():

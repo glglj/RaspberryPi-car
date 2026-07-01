@@ -220,6 +220,7 @@ pip install pigpio pyserial opencv-python numpy
 # 编译 Cython 模块
 cd lidar  && python3 setup.py build_ext --inplace
 cd ../imu && python3 setup_imu.py build_ext --inplace
+cd ../slam && python3 setup_scan.py build_ext --inplace
 ```
 
 ### 启动步骤

@@ -24,8 +24,10 @@ cdef class FastScanMatcher:
     """Cython 加速的扫描匹配器，API 与原 ScanMatcher 兼容"""
 
     cdef:
-        double search_xy, search_theta, res_xy, res_theta, min_score
+        double search_xy, search_theta, res_xy, res_theta
         int max_points, coarse_factor
+    cdef public:
+        double min_match_score
         double last_score
         int match_count, fail_count
 
@@ -43,7 +45,7 @@ cdef class FastScanMatcher:
         self.search_theta = search_window_theta * 0.017453292519943295  # deg → rad
         self.res_xy = resolution_xy
         self.res_theta = resolution_theta * 0.017453292519943295
-        self.min_score = min_match_score
+        self.min_match_score = min_match_score
         self.max_points = max_scan_points
         self.coarse_factor = coarse_factor
         self.last_score = 0.0
@@ -182,7 +184,7 @@ cdef class FastScanMatcher:
             theta=prior_theta + best_dt,
         )
 
-        if best_score < self.min_score:
+        if best_score < self.min_match_score:
             self.fail_count += 1
             return (prior_pose, best_score)
 
@@ -205,7 +207,7 @@ cdef class FastScanMatcher:
 
 
 # ================================================================
-# C 级别内联搜索函数 (避免 cpdef 调用开销)
+# C 级别内联搜索函数 (避免 cpdef 调用开销，持有 GIL 但不调用 Python)
 # ================================================================
 
 cdef void _match_coarse(
@@ -220,7 +222,7 @@ cdef void _match_coarse(
     double[:] rx, double[:] ry,
     int[:] gx0, int[:] gy0,
     double* best_score, double* best_dx, double* best_dy, double* best_dt,
-) nogil:
+):
     """粗搜索: step_xy = res_xy * coarse_factor, step_theta = res_theta * coarse_factor"""
     cdef:
         int dxi, dyi, dti, p, gx, gy, valid_count, gx_off_int, gy_off_int
@@ -279,7 +281,7 @@ cdef void _match_fine(
     double[:] rx, double[:] ry,
     int[:] gx0, int[:] gy0,
     double* best_score, double* best_dx, double* best_dy, double* best_dt,
-) nogil:
+):
     """精搜索: 在粗搜索结果附近以 1x 分辨率搜索"""
     cdef:
         int dxi, dyi, dti, p, gx, gy, valid_count, gx_step
