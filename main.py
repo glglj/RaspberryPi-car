@@ -10,13 +10,13 @@
   - EncoderSensor._worker       : GPIO边沿采样 (启动)
   - MotionController._worker    : 50Hz 运动控制
   - slam_thread                 : SLAM主循环 (里程计→扫描匹配→局部建图→关键帧)
-  - lidar_send_thread           : 雷达UDP发送
-  - imu_send_thread             : IMU UDP发送
+  - unified_send_thread         : 1Hz 统一发送 (雷达+IMU+里程计+局部子图)
   - cmd_recv_thread             : 命令接收+SLAM反馈处理
 """
 
 import threading
 import time
+import os
 import pigpio
 import math
 
@@ -25,8 +25,8 @@ from imu.imu import IMUSensor
 from Encoder.Encoder import EncoderSensor
 from pwm import Motor
 from robot_run.motion_control import MotionController
-from robot_run.udp_receiver import UdpReceiver
-from udp_sender import UdpSender
+from robot_run.udp_receiver import TcpReceiver
+from udp_sender import TcpSender
 from model.models import (
     MSG_LIDAR, MSG_IMU, MSG_ODOM, MSG_KEYFRAME, MSG_LOCAL_MAP,
     CMD_STOP, CMD_STRAIGHT, CMD_TURN_LEFT, CMD_TURN_RIGHT,
@@ -64,11 +64,16 @@ KF_ANGLE_THRESHOLD = 15.0     # 最小旋转间隔 (度)
 KF_TIME_THRESHOLD = 2.0       # 最小时间间隔 (s)
 
 # UDP 目标
-UDP_LIDAR_IP = "bj.zyfrp.vip"
-UDP_IMU_IP = "am.zyfrp.vip"
-UDP_SLAM_IP = "am.zyfrp.vip"  # SLAM数据发到这个地址
+UDP_SLAM_IP = "am.zyfrp.vip"  # 统一数据发送地址
 UDP_PORT = 5005
 CMD_PORT = 5006
+
+# 统一发送
+UNIFIED_SEND_INTERVAL = 1.0   # 1Hz 统一发送间隔
+
+# 地图本地保存
+MAP_SAVE_INTERVAL = 5.0        # 地图保存间隔 (秒)
+MAP_SAVE_DIR = "maps"          # 地图保存目录
 
 
 def main():
@@ -91,11 +96,9 @@ def main():
     # MotionController 和 SLAM 线程都直接使用 encoder.a_counter.total()/b_counter.total()
     # 通过 encoder.read() 读取增量 (MotionController), 通过累计值读取 (SLAM)
 
-    # ---- UDP 通信 ----
-    udp_lidar = UdpSender(UDP_LIDAR_IP, UDP_PORT)
-    udp_imu = UdpSender(UDP_IMU_IP, UDP_PORT)
-    udp_slam = UdpSender(UDP_SLAM_IP, UDP_PORT)
-    receiver = UdpReceiver(port=CMD_PORT)
+    # ---- TCP 通信 ----
+    udp_slam = TcpSender(UDP_SLAM_IP, UDP_PORT)
+    receiver = TcpReceiver(port=CMD_PORT)
 
     # ---- 运动控制 ----
     motion = MotionController(motor_a, motor_b, encoder, imu)
@@ -129,32 +132,48 @@ def main():
 
     stop_event = threading.Event()
 
+    _send_errors = 0
+
+    def _safe_send(msg_type, ts_ns, payload):
+        nonlocal _send_errors
+        if not udp_slam.send(msg_type, ts_ns, payload):
+            _send_errors += 1
+
     # ==================== 工作线程 ====================
 
-    # ---- 雷达上报线程 ----
-    def lidar_loop():
+    # ---- 统一发送线程 (1Hz) ----
+    def unified_send_loop():
+        """1Hz 统一发送：雷达 + IMU + 里程计 + 局部子图，相同时间戳"""
         while not stop_event.is_set():
-            result = lidar.get_frame(timeout=0.5)
-            if result is None:
-                continue
-            ts, frame = result
-            payload = LidarSensor.pack_frame(ts, frame)
-            udp_lidar.send(MSG_LIDAR, ts, payload)
+            now = time.time()
+            ts_ns = int(now * 1e9)
 
-    # ---- IMU 上报线程 ----
-    def imu_loop():
-        while not stop_event.is_set():
-            try:
-                ts, payload = imu.get(timeout=0.5)
-            except Exception:
-                continue
-            udp_imu.send(MSG_IMU, ts, payload)
+            # 1. LiDAR（非阻塞，无竞争）
+            lidar_frame = lidar.get_latest_frame()
+            if lidar_frame is not None:
+                frame_ts, frame = lidar_frame
+                payload = LidarSensor.pack_frame(frame_ts, frame)
+                _safe_send(MSG_LIDAR, ts_ns, payload)
+
+            # 2. IMU
+            imu_ts, imu_payload = imu.get_latest_bundle()
+            if imu_payload is not None:
+                _safe_send(MSG_IMU, ts_ns, imu_payload)
+
+            # 3. 里程计
+            odom_frame = odometry.get_odometry_frame()
+            if odom_frame.timestamp_ns > 0:
+                _safe_send(MSG_ODOM, ts_ns, odom_frame.pack())
+
+            # 4. 局部子图 (TCP支持大包发送)
+            _safe_send(MSG_LOCAL_MAP, ts_ns, local_mapper.get_local_map().pack())
+
+            time.sleep(UNIFIED_SEND_INTERVAL)
 
     # ---- SLAM 处理线程 ----
     def slam_loop():
         """SLAM主循环: 里程计 → 扫描匹配 → 局部建图 → 关键帧发送"""
         last_scan_result = None
-        last_local_map_send = 0.0
         last_odom_time = 0.0
 
         while not stop_event.is_set():
@@ -202,29 +221,16 @@ def main():
             # 4. 更新局部地图
             local_mapper.update(filtered_scan, final_pose)
 
-            # 5. 发送里程计数据 (约20Hz)
-            odom_frame = odometry.get_odometry_frame()
-            udp_slam.send(MSG_ODOM, odom_frame.timestamp_ns, odom_frame.pack())
-
-            # 6. 关键帧检测和发送
+            # 5. 关键帧检测和发送
             if keyframe_selector.should_create(final_pose):
                 kf = keyframe_selector.create_keyframe(
                     final_pose, filtered_scan,
                     timestamp_ns=scan_ts,
                 )
-                udp_slam.send(MSG_KEYFRAME, kf.timestamp_ns, kf.pack())
+                _safe_send(MSG_KEYFRAME, kf.timestamp_ns, kf.pack())
                 print(f"[SLAM] 关键帧 #{kf.id} 已发送, "
                       f"位姿=({final_pose.x:.3f}, {final_pose.y:.3f}, "
                       f"{math.degrees(final_pose.theta):.1f}°)")
-
-            # 7. 局部子图发送 (每10秒一次)
-            now = time.time()
-            if now - last_local_map_send > 10.0:
-                submap = local_mapper.get_local_map()
-                payload = submap.pack()
-                udp_slam.send(MSG_LOCAL_MAP, int(now * 1e9), payload)
-                last_local_map_send = now
-                print(f"[SLAM] 局部子图已发送 ({submap.width}x{submap.height})")
 
             time.sleep(0.02)  # ~50Hz SLAM loop
 
@@ -263,23 +269,37 @@ def main():
                 print(f"[SLAM] 检测到回环: {data.kf_id_a} ↔ {data.kf_id_b}, "
                       f"置信度={data.confidence:.2f}")
 
+    # ---- 地图保存线程 ----
+    def map_save_loop():
+        """每 MAP_SAVE_INTERVAL 秒保存一次当前局部地图"""
+        os.makedirs(MAP_SAVE_DIR, exist_ok=True)
+        while not stop_event.is_set():
+            local_map = local_mapper.get_local_map()
+            pose = odometry.get_pose()
+            filename = os.path.join(
+                MAP_SAVE_DIR,
+                time.strftime("map_%Y%m%d_%H%M%S.ppm")
+            )
+            local_mapper.save_debug_image(filename, robot_pose=pose)
+            time.sleep(MAP_SAVE_INTERVAL)
+
     # ---- 启动所有线程 ----
     threads = [
-        threading.Thread(target=lidar_loop, daemon=True),
-        threading.Thread(target=imu_loop, daemon=True),
         threading.Thread(target=slam_loop, daemon=True, name="slam"),
-        threading.Thread(target=cmd_recv_loop, daemon=True),
+        threading.Thread(target=unified_send_loop, daemon=True, name="unified"),
+        threading.Thread(target=cmd_recv_loop, daemon=True, name="cmd"),
+        threading.Thread(target=map_save_loop, daemon=True, name="mapsave"),
     ]
     for t in threads:
         t.start()
 
     print("=" * 50)
     print("系统运行中:")
-    print("  [lidar]  雷达数据发送")
-    print("  [imu]    IMU数据发送")
-    print("  [slam]   SLAM处理 (里程计+扫描匹配+局部建图+关键帧)")
-    print("  [cmd]    指令接收 + SLAM反馈处理")
-    print("  [motion] 运动控制 (50Hz) ")
+    print("  [slam]    SLAM处理 (里程计+扫描匹配+局部建图+关键帧)")
+    print("  [unified] 1Hz 统一发送 (雷达+IMU+里程计+局部子图)")
+    print("  [cmd]     指令接收 + SLAM反馈处理")
+    print("  [mapsave] 周期地图保存 (PPM)")
+    print("  [motion]  运动控制 (50Hz)")
     print("=" * 50)
 
     try:
@@ -294,6 +314,7 @@ def main():
         imu.stop()
         encoder.stop()
         receiver.close()
+        udp_slam.close()
         pi.stop()
 
         # 打印统计
@@ -301,6 +322,7 @@ def main():
         print(f"扫描匹配: 成功{stats['match_count']}次 / "
               f"失败{stats['fail_count']}次 "
               f"(成功率{stats['success_rate']:.1%})")
+        print(f"TCP发送失败: {_send_errors} 次")
         print("退出程序")
 
 

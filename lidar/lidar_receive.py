@@ -19,6 +19,8 @@ class LidarSensor:
         self.parser = LidarParser()
         self.uart = serial.Serial(port=port, baudrate=baudrate, timeout=0.1)
         self.frame_queue = queue.Queue(maxsize=1)
+        self._latest_frame = None
+        self._latest_lock = threading.Lock()
         self._running = True
         self._thread = threading.Thread(target=self._read_loop, daemon=True)
         self._thread.start()
@@ -58,6 +60,8 @@ class LidarSensor:
             self.frame_queue.put_nowait((ts, frame))
         except queue.Full:
             pass
+        with self._latest_lock:
+            self._latest_frame = (ts, frame)
 
     def get_frame(self, block=True, timeout=None):
         """获取最近的一圈完整雷达数据。
@@ -69,6 +73,11 @@ class LidarSensor:
             return self.frame_queue.get(block=block, timeout=timeout)
         except queue.Empty:
             return None
+
+    def get_latest_frame(self):
+        """返回最新扫描的拷贝，不消费队列（供统一发送线程使用）。"""
+        with self._latest_lock:
+            return self._latest_frame
 
     @staticmethod
     def pack_frame(ts, frame):

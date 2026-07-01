@@ -43,6 +43,7 @@ class IMUSensor:
         self._lock = threading.Lock()
         self._latest_yaw = 0.0           # 最新偏航角 (度)
         self._latest_gyro_z = 0.0        # 最新Z轴角速度 (度/秒)
+        self._latest_bundle = (0, None)  # 最新IMU二进制包
 
     # =========================
     # 外部接口
@@ -73,6 +74,11 @@ class IMUSensor:
         """返回最新的Z轴角速度 (度/秒)"""
         with self._lock:
             return self._latest_gyro_z
+
+    def get_latest_bundle(self):
+        """返回最新的IMU二进制包 (非消费读取)，供统一发送线程使用。"""
+        with self._lock:
+            return self._latest_bundle
 
     # =========================
     # 工作线程：串口读取 → Cython 解包 → 直接打包二进制 → 入队
@@ -114,3 +120,5 @@ class IMUSensor:
             except Exception:
                 pass
         self.queue.put((ts, payload))
+        with self._lock:
+            self._latest_bundle = (ts, payload)

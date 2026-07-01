@@ -249,6 +249,36 @@ class LocalMapper:
         """返回机器人在栅格中的坐标"""
         return self._world_to_grid(self._robot_x, self._robot_y)
 
+    def save_debug_image(self, filepath, robot_pose=None):
+        """保存地图为 PPM 图片
+
+        颜色编码:
+          黑色 = 占据 (grid >= 30)
+          白色 = 空闲 (grid <= -30)
+          灰色 = 未知 (其他)
+          红色十字 = 机器人位置
+        """
+        h, w = self.grid.shape
+        rgb = np.zeros((h, w, 3), dtype=np.uint8)
+
+        occupied = self.grid >= 30
+        free = self.grid <= -30
+        unknown = ~occupied & ~free
+
+        rgb[occupied] = [0, 0, 0]
+        rgb[free] = [255, 255, 255]
+        rgb[unknown] = [128, 128, 128]
+
+        if robot_pose is not None:
+            rx, ry = self._world_to_grid(robot_pose.x, robot_pose.y)
+            if self._in_bounds(rx, ry):
+                rgb[max(0, ry-2):min(h, ry+3), rx, :] = [255, 0, 0]
+                rgb[ry, max(0, rx-2):min(w, rx+3), :] = [255, 0, 0]
+
+        with open(filepath, 'wb') as f:
+            f.write(f"P6\n{w} {h}\n255\n".encode())
+            f.write(rgb.tobytes())
+
     def reset(self):
         """重置地图"""
         self.grid.fill(0)
