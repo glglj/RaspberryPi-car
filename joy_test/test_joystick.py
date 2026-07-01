@@ -27,11 +27,12 @@ def main():
         return
 
     # 初始化双路电机
-    motor_a = Motor(pi, pwm_pin=18, in1=23, in2=24, freq=0)
-    motor_b = Motor(pi, pwm_pin=13, in1=5,  in2=6,  freq=0)
+    motor_a = Motor(pi, pwm_pin=18, in1=23, in2=24, freq=1000)
+    motor_b = Motor(pi, pwm_pin=13, in1=5,  in2=6,  freq=1000)
 
     # 创建手柄控制器
-    joystick = JoystickController(motor_a, motor_b, device=DEVICE)
+    joystick = JoystickController(motor_a, motor_b, device=DEVICE,
+                                  axis_y=0, axis_x=1)
 
     # 注册 Ctrl+C 清理
     def cleanup(signum, frame):

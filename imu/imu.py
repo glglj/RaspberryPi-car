@@ -4,6 +4,7 @@ import time
 import struct
 from queue import Queue
 from imu.imu_parser import ImuParser
+import math
 
 
 def _pack_frame(f):
@@ -31,7 +32,7 @@ def _pack_bundle(frames):
 
 
 class IMUSensor:
-    def __init__(self, port="/dev/ttyUSB0", baud=115200, queue_size=100):
+    def __init__(self, port="/dev/ttyUSB0", baud=115200, queue_size=10):
         self.ser = serial.Serial(port, baud, timeout=0.1)
         self.parser = ImuParser()
         self.queue = Queue(maxsize=queue_size)
@@ -39,6 +40,9 @@ class IMUSensor:
         self.thread = None
         self._bundle_timeout = 0.015
         self._last_data_ns = 0
+        self._lock = threading.Lock()
+        self._latest_yaw = 0.0           # 最新偏航角 (度)
+        self._latest_gyro_z = 0.0        # 最新Z轴角速度 (度/秒)
 
     # =========================
     # 外部接口
@@ -58,6 +62,18 @@ class IMUSensor:
     def get(self, block=True, timeout=None):
         return self.queue.get(block=block, timeout=timeout)
 
+    @property
+    def latest_yaw(self):
+        """返回最新的偏航角 (度)"""
+        with self._lock:
+            return self._latest_yaw
+
+    @property
+    def latest_gyro_z(self):
+        """返回最新的Z轴角速度 (度/秒)"""
+        with self._lock:
+            return self._latest_gyro_z
+
     # =========================
     # 工作线程：串口读取 → Cython 解包 → 直接打包二进制 → 入队
     # =========================
@@ -71,12 +87,25 @@ class IMUSensor:
                 ):
                     partial = self.parser.flush()
                     if partial:
+                        self._extract_imu_state(partial)
                         self._put(time.time_ns(), _pack_bundle(partial))
                 continue
 
             self._last_data_ns = time.time_ns()
             for bundle in self.parser.feed(data):
+                self._extract_imu_state(bundle)
                 self._put(time.time_ns(), _pack_bundle(bundle))
+
+    def _extract_imu_state(self, bundle):
+        """从解析后的bundle中提取yaw和gyro_z，供里程计和运动控制使用"""
+        for f in bundle:
+            t = f["type"]
+            if t == 0x53:  # ANGLE
+                with self._lock:
+                    self._latest_yaw = f["yaw"]
+            elif t == 0x52:  # GYRO
+                with self._lock:
+                    self._latest_gyro_z = f["gz"]
 
     def _put(self, ts, payload):
         if self.queue.full():
