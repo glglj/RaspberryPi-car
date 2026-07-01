@@ -276,6 +276,7 @@ def main():
         while not stop_event.is_set():
             result = receiver.recv(timeout=0.1)
             if result is None:
+                time.sleep(0.05)  # 无连接/无数据时休眠，避免空转 CPU
                 continue
 
             msg_type, data = result
