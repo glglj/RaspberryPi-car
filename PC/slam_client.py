@@ -4,7 +4,7 @@
 管理回环检测、位姿图优化和全局地图构建。
 
 通信架构 (TCP):
-  - TCP Server bind 0.0.0.0:5005 : 接收 Pi 端数据 (关键帧/里程计/局部子图)
+  - TCP Server bind 0.0.0.0:5001 : 接收 Pi 端数据 (关键帧/里程计/局部子图)
   - TCP Client connect Pi:5006    : 发送位姿修正到 Pi
 """
 
@@ -14,12 +14,13 @@ import threading
 import time
 from queue import Queue
 from model.models import (
-    MSG_ODOM, MSG_KEYFRAME, MSG_LOCAL_MAP,
+    MSG_ODOM, MSG_KEYFRAME, MSG_LOCAL_MAP, MSG_LIDAR, MSG_IMU, MSG_UNIFIED,
     MSG_LOOP_CLOSURE, MSG_POSE_CORRECTION,
-    OdometryFrame, KeyFrame, LocalMap, LoopClosure,
+    OdometryFrame, KeyFrame, LocalMap, LoopClosure, RobotPose,
 )
 from PC.loop_detector import LoopDetector
 from PC.pose_graph import PoseGraph
+from PC.slam_viewer import SlamViewer
 
 
 class SlamClient:
@@ -35,7 +36,7 @@ class SlamClient:
 
     def __init__(
         self,
-        listen_port=5005,
+        listen_port=5001,
         target_ip=None,         # Pi的IP地址 (用于发送修正)
         target_port=5006,       # Pi的TCP命令端口
         loop_search_radius=3.0,
@@ -133,7 +134,7 @@ class SlamClient:
             self._server_sock = None
 
     # =========================
-    # TCP Server: 接收 Pi 数据 (port 5005)
+    # TCP Server: 接收 Pi 数据 (port 5001)
     # =========================
 
     def _accept_and_recv_loop(self):
@@ -191,6 +192,10 @@ class SlamClient:
 
     def _dispatch(self, msg_type, timestamp_ns, payload):
         """分发收到的消息"""
+        if msg_type == MSG_UNIFIED:
+            self._handle_unified(timestamp_ns, payload)
+            return
+
         if msg_type == MSG_ODOM and len(payload) >= 28:
             try:
                 odom = OdometryFrame.unpack(payload[:28])
@@ -216,6 +221,30 @@ class SlamClient:
                     self.on_local_map(lmap)
             except Exception as e:
                 print(f"[SlamClient] local_map unpack error: {e}")
+
+    def _handle_unified(self, timestamp_ns, payload):
+        """解析 MSG_UNIFIED 统一数据包
+
+        格式: | sub_count(1B) | [sub_type(1B) | sub_len(4B BE) | sub_data]... |
+        """
+        try:
+            offset = 0
+            sub_count = payload[offset]
+            offset += 1
+            for _ in range(sub_count):
+                if offset + 5 > len(payload):
+                    break
+                sub_type = payload[offset]
+                sub_len = struct.unpack("!I", payload[offset + 1:offset + 5])[0]
+                offset += 5
+                if offset + sub_len > len(payload):
+                    break
+                sub_data = payload[offset:offset + sub_len]
+                offset += sub_len
+                # 递归分发子消息 (MSG_ODOM / MSG_LIDAR / MSG_IMU / MSG_LOCAL_MAP)
+                self._dispatch(sub_type, timestamp_ns, sub_data)
+        except Exception as e:
+            print(f"[SlamClient] unified unpack error: {e}")
 
     # =========================
     # TCP Client: 发送修正到 Pi (port 5006)
@@ -349,7 +378,7 @@ def main():
     import argparse
 
     parser = argparse.ArgumentParser(description="PC端 SLAM 客户端")
-    parser.add_argument("--port", type=int, default=5005,
+    parser.add_argument("--port", type=int, default=5001,
                        help="监听端口 (接收Pi数据)")
     parser.add_argument("--target-ip", type=str, default=None,
                        help="树莓派IP (发送位姿修正)")
@@ -361,6 +390,8 @@ def main():
                        help="最小关键帧间隔")
     parser.add_argument("--loop-threshold", type=float, default=0.6,
                        help="回环匹配置信度阈值")
+    parser.add_argument("--no-gui", action="store_true",
+                       help="无头模式运行 (不显示可视化窗口)")
     args = parser.parse_args()
 
     client = SlamClient(
@@ -372,21 +403,44 @@ def main():
         loop_match_threshold=args.loop_threshold,
     )
 
+    # ---- 可视化 ----
+    viewer = None
+    if not args.no_gui:
+        viewer = SlamViewer(interval_ms=100)
+
     # 设置回调
     def on_kf(kf):
         print(f"[PC] 收到关键帧 #{kf.id}: "
               f"({kf.pose.x:.3f}, {kf.pose.y:.3f}), "
               f"点数={len(kf.points)}")
+        if viewer:
+            viewer.add_keyframe(kf.id, kf.pose, kf.points)
+
+    def on_odom(odom):
+        if viewer:
+            viewer.update_odom(odom.pose)
+
+    def on_lmap(lmap):
+        if viewer:
+            viewer.update_map(lmap)
 
     def on_loop(loop):
         print(f"[PC] 检测到回环: {loop.kf_id_a} ↔ {loop.kf_id_b}, "
               f"置信度={loop.confidence:.2f}")
+        if viewer:
+            viewer.add_loop_closure(loop)
 
     def on_corr(corr):
         print(f"[PC] 发送位姿修正: kf={corr.kf_id}, "
               f"({corr.corrected_x:.3f}, {corr.corrected_y:.3f})")
+        if viewer:
+            viewer.add_correction(corr.kf_id,
+                RobotPose(x=corr.corrected_x, y=corr.corrected_y,
+                          theta=corr.corrected_theta))
 
     client.on_keyframe = on_kf
+    client.on_odom = on_odom
+    client.on_local_map = on_lmap
     client.on_loop = on_loop
     client.on_correction = on_corr
 
@@ -396,12 +450,28 @@ def main():
           else "[PC] (未设置Pi地址，不会发送位姿修正)")
 
     try:
-        while True:
-            time.sleep(10)
-            stats = client.get_stats()
-            print(f"[PC] 统计: 关键帧={stats['keyframes_received']}, "
-                  f"回环={stats['loops_detected']}, "
-                  f"图节点={stats['graph_nodes']}, 图边={stats['graph_edges']}")
+        if viewer:
+            # 启动 matplotlib 可视化 (阻塞主线程)
+            print("[PC] 可视化窗口已启动")
+            # 周期性统计打印 (后台线程)
+            import threading
+            def _stats_loop():
+                while client._running:
+                    time.sleep(10)
+                    stats = client.get_stats()
+                    print(f"[PC] 统计: 关键帧={stats['keyframes_received']}, "
+                          f"回环={stats['loops_detected']}, "
+                          f"图节点={stats['graph_nodes']}, 图边={stats['graph_edges']}")
+            threading.Thread(target=_stats_loop, daemon=True).start()
+
+            viewer.show()  # 阻塞直到窗口关闭
+        else:
+            while True:
+                time.sleep(10)
+                stats = client.get_stats()
+                print(f"[PC] 统计: 关键帧={stats['keyframes_received']}, "
+                      f"回环={stats['loops_detected']}, "
+                      f"图节点={stats['graph_nodes']}, 图边={stats['graph_edges']}")
     except KeyboardInterrupt:
         pass
     finally:

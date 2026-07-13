@@ -22,7 +22,7 @@
 ```
 ├── main.py                    # 主程序入口 (集成SLAM管线)
 ├── pwm.py                     # 电机PWM控制
-├── udp_sender.py              # UDP通信模块 (统一帧格式)
+├── tcp_sender.py              # TCP通信模块 (统一帧格式)
 │
 ├── slam/                      # SLAM模块 (运行在Pi上)
 │   ├── __init__.py

@@ -15,6 +15,9 @@ MSG_ODOM = 0x04
 MSG_KEYFRAME = 0x05
 MSG_LOCAL_MAP = 0x06
 
+# Pi → PC: 统一数据包 (LiDAR + IMU + Odometry + LocalMap 合并发送)
+MSG_UNIFIED = 0x09
+
 # PC → Pi: SLAM反馈
 MSG_LOOP_CLOSURE = 0x07
 MSG_POSE_CORRECTION = 0x08
