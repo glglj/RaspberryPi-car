@@ -24,8 +24,8 @@ from model.models import (                             # noqa: E402
     OdometryFrame, RobotPose, CMD_STOP,
 )
 
-DATA_HOST = "bj.zyfrp.vip"
-DATA_PORT = 5001
+DATA_HOST = "43.227.71.58"
+DATA_PORT = 44310
 CMD_PORT = 8002
 
 
@@ -36,7 +36,7 @@ def main():
     args = parser.parse_args()
 
     print("=" * 60)
-    print(f"[Pi] 数据链路目标: {DATA_HOST}:{DATA_PORT} (→PC:5001)")
+    print(f"[Pi] 数据链路目标: {DATA_HOST}:{DATA_PORT} (→PC:8080)")
     print(f"[Pi] 命令链路监听: 0.0.0.0:{CMD_PORT} (←bj.zyfrp.vip:8002)")
     print("=" * 60)
 
@@ -74,7 +74,7 @@ def main():
     seq = 0
     while time.time() < deadline:
         if sender._connected and seq == 0:
-            print("[Pi] ✓ 数据链路已连接到 PC (经 bj.zyfrp.vip:5001)")
+            print("[Pi] ✓ 数据链路已连接到 PC (经 43.227.71.58:44310)")
             seq = 1
         frame = OdometryFrame(
             pose=RobotPose(x=seq * 0.01, y=0.0, theta=0.0),

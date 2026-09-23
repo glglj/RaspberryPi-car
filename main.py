@@ -67,9 +67,9 @@ KF_ANGLE_THRESHOLD = 15.0     # 最小旋转间隔 (度)
 KF_TIME_THRESHOLD = 2.0       # 最小时间间隔 (s)
 
 # TCP 目标 (端云通信链路, 见 DEPLOY.md 端口分配表)
-# Pi→PC 数据: bj.zyfrp.vip:5001 (frpmgr 已有映射 → PC:5001)
-TCP_SLAM_IP = "bj.zyfrp.vip"  # 统一数据发送地址
-TCP_PORT = 5001
+# Pi→PC 数据: 43.227.71.58:44310 (frpmgr 已有映射 → PC:8080)
+TCP_SLAM_IP = "43.227.71.58"  # 统一数据发送地址
+TCP_PORT = 44310
 # PC→Pi 命令: bj.zyfrp.vip:8002 (树莓派端 frpc_zyfrp 映射 → 本机 8002)
 CMD_PORT = 8002
 
