@@ -16,6 +16,7 @@
 
 import threading
 import time
+import os
 
 import pigpio
 import math
@@ -27,6 +28,7 @@ from pwm import Motor
 from robot_run.motion_control import MotionController
 from robot_run.udp_receiver import TcpReceiver
 from tcp_sender import TcpSender
+from camera.h264_streamer import H264Streamer
 from model.models import (
     MSG_LIDAR, MSG_IMU, MSG_ODOM, MSG_KEYFRAME, MSG_LOCAL_MAP, MSG_UNIFIED,
     CMD_STOP, CMD_STRAIGHT, CMD_TURN_LEFT, CMD_TURN_RIGHT,
@@ -69,8 +71,20 @@ TCP_SLAM_IP = "bj.zyfrp.vip"  # 统一数据发送地址
 TCP_PORT = 5001
 CMD_PORT = 5006
 
+# 视频推流
+ENABLE_VIDEO_STREAM = False     # 是否启用 H264 视频推流
+VIDEO_HOST = "bj.zyfrp.vip"    # 视频推流目标地址
+VIDEO_PORT = 5007              # 视频推流端口
+VIDEO_WIDTH = 1280             # 摄像头分辨率
+VIDEO_HEIGHT = 720
+VIDEO_FPS = 30
+
 # 统一发送
 UNIFIED_SEND_INTERVAL = 1.0   # 1Hz 统一发送间隔
+
+# 地图本地保存
+MAP_SAVE_INTERVAL = 5.0        # 地图保存间隔 (秒)
+MAP_SAVE_DIR = "maps"          # 地图保存目录
 
 
 def main():
@@ -100,6 +114,18 @@ def main():
     # ---- 运动控制 ----
     motion = MotionController(motor_a, motor_b, encoder, imu)
     motion.start()
+
+    # ---- 视频推流 (可选) ----
+    video_streamer = None
+    if ENABLE_VIDEO_STREAM:
+        video_streamer = H264Streamer(
+            host=VIDEO_HOST,
+            port=VIDEO_PORT,
+            width=VIDEO_WIDTH,
+            height=VIDEO_HEIGHT,
+            fps=VIDEO_FPS,
+        )
+        video_streamer.start()
 
     # ---- SLAM 组件 ----
     odometry = Odometry(
@@ -333,11 +359,26 @@ def main():
                 print(f"[SLAM] 检测到回环: {data.kf_id_a} ↔ {data.kf_id_b}, "
                       f"置信度={data.confidence:.2f}")
 
+    # ---- 地图保存线程 ----
+    def map_save_loop():
+        """每 MAP_SAVE_INTERVAL 秒保存一次当前局部地图"""
+        os.makedirs(MAP_SAVE_DIR, exist_ok=True)
+        while not stop_event.is_set():
+            local_map = local_mapper.get_local_map()
+            pose = odometry.get_pose()
+            filename = os.path.join(
+                MAP_SAVE_DIR,
+                time.strftime("map_%Y%m%d_%H%M%S.png")
+            )
+            local_mapper.save_debug_image(filename, robot_pose=pose)
+            time.sleep(MAP_SAVE_INTERVAL)
+
     # ---- 启动所有线程 ----
     threads = [
         threading.Thread(target=slam_loop, daemon=True, name="slam"),
         threading.Thread(target=unified_send_loop, daemon=True, name="unified"),
         threading.Thread(target=cmd_recv_loop, daemon=True, name="cmd"),
+        # threading.Thread(target=map_save_loop, daemon=True, name="mapsave"),
 
     ]
     for t in threads:
@@ -348,8 +389,12 @@ def main():
     print("  [slam]    SLAM处理 (里程计+扫描匹配+局部建图+关键帧)")
     print("  [unified] 1Hz 统一发送 (雷达+IMU+里程计+局部子图)")
     print("  [cmd]     指令接收 + SLAM反馈处理")
-
+    print("  [mapsave] 周期地图保存 (PPM)")
     print("  [motion]  运动控制 (50Hz)")
+    if ENABLE_VIDEO_STREAM:
+        print(f"  [video]   H264视频推流 ({VIDEO_WIDTH}x{VIDEO_HEIGHT}@{VIDEO_FPS}fps → {VIDEO_HOST}:{VIDEO_PORT})")
+    else:
+        print("  [video]   视频推流 (已禁用)")
     print("=" * 50)
 
     try:
@@ -358,6 +403,7 @@ def main():
         pass
     finally:
         print("正在退出...")
+
         stop_event.set()
         motion.stop_controller()
         lidar.stop()
@@ -365,6 +411,8 @@ def main():
         encoder.stop()
         receiver.close()
         tcp_slam.close()
+        if video_streamer:
+            video_streamer.stop()
         pi.stop()
 
         # 打印统计
