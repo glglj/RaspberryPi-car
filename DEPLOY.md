@@ -11,7 +11,7 @@
 | 链路 | 公网端点 | 落地 | 用途 | 提供方 |
 |------|----------|------|------|--------|
 | **Pi→PC 数据** | `43.227.71.58:44310` (TCP) | PC `127.0.0.1:8080` | SLAM统一数据流 (雷达/IMU/里程计/局部子图/关键帧, 1Hz MSG_UNIFIED + 事件帧) | PC frpmgr 映射 `44310→8080` |
-| **Pi→PC 视频** | `43.227.71.58:42011` (TCP) | PC `127.0.0.1:8888` | H264视频流 (ffmpeg 透传) | PC frpmgr 映射 `42011→8888` |
+| **Pi→PC 视频** | `43.227.71.58:42011` (TCP) | PC `127.0.0.1:8888` | H264视频流 (本摄像头仅MJPG, 树莓派端libx264软编码 2Mbps) | PC frpmgr 映射 `42011→8888` |
 | **PC→Pi 命令** | `bj.zyfrp.vip:8002` (TCP) | Pi `127.0.0.1:8002` | 运动指令 / 回环约束 / 位姿修正 | Pi 端 `frpc-zyfrp` 服务 映射 `8002→8002` |
 | Pi侧预留 | `bj.zyfrp.vip:8001` (TCP) | Pi `8001` | 预留 (备用命令/调试通道) | 同上 |
 | Pi侧预留 | `bj.zyfrp.vip:8003` (UDP) | Pi `8003` | 预留 (低延迟遥控/遥测, 见开题报告 3.3(3)) | 同上 |
@@ -90,7 +90,20 @@ python3 main.py                       # 正常运行 (电机使能)
 > 服务自启: Pi 端 `frpc.service`(SSH) 与 `frpc-zyfrp.service`(8001-8004) 均
 > 已 `systemctl enable`, 开机自动拉起。
 
-## 5. 链路自检 (无需传感器/电机)
+## 5. 视频链路自检 (2026-09-23 已验证)
+
+```bash
+# 树莓派: 推流 (MJPG摄像头需 libx264 软编码)
+python3 camera/h264_streamer.py --host 43.227.71.58 --port 42011     --encode libx264 --width 1280 --height 720 --fps 30
+
+# PC: 录制 8 秒验证 (或去掉 --save/--duration 用 ffplay 实时观看)
+.venv/Scripts/python.exe PC/video_receiver.py --port 8888     --save video_test.h264 --duration 8
+ffprobe video_test.h264   # 应显示 h264, 1280x720
+```
+注: 已验证全链路 (MJPG采集→x264编码→frp隧道→PC录制→ffprobe解码)。
+夜间无光时画面为黑/噪点属正常, 开灯即可。
+
+## 6. 链路自检 (无需传感器/电机)
 
 ```bash
 # PC (先启动, 监听 8080 + 连接 8002)
@@ -103,7 +116,7 @@ python3 tools/link_check/pi_side.py --duration 40
 ```
 两侧均输出 `自检结论: PASS` 即双向链路正常。
 
-## 6. 故障排查
+## 7. 故障排查
 
 | 现象 | 排查 |
 |------|------|
@@ -113,10 +126,12 @@ python3 tools/link_check/pi_side.py --duration 40
 | IMU 缺失 (统一帧 3 子包) | imu_parser.so 与 .pyx 版本不一致 (历史坑: 旧 .so 无 bundle/flush), 重编译 3.1 节命令 |
 | PC 静默失联 (无任何断开日志) | 历史 bug: --no-gui 无消费者时 `local_map_queue.put` 阻塞卡死接收线程, 已改为队满丢最旧 + 主循环排空 (slam_client.py `_put_drop_oldest`) |
 
-## 7. 联调记录 (2026-09-23)
+## 8. 联调记录 (2026-09-23)
 
 - 双向链路自检 PASS: Pi→PC 80 帧合成里程计全收; PC→Pi 位姿修正 + CMD_STOP 正确解析。
 - 真实系统 dry-run 联调 PASS: Pi 端雷达/IMU/编码器 + SLAM (栅格 400×400@5cm 持续更新,
   关键帧 0.5Hz 时间触发) → frp → PC 端位姿图 (关键帧计数与图节点持续增长), 连接稳定无重连。
+- 视频链路验证: Pi 摄像头 (MJPG 1280x720) libx264 软编码 → 43.227.71.58:42011
+  → PC:8888 录制 8s (335KB), ffprobe 确认 h264/1280x720 可正常解码
 - 修复: Pi 端命令帧头 12→16 字节 (`robot_run/udp_receiver.py`);
   PC 端无头模式队列阻塞 (`PC/slam_client.py`); imu_parser.so 与源码不一致 (重编译)。

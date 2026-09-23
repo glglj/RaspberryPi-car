@@ -27,7 +27,8 @@ class H264Streamer:
     """
 
     def __init__(self, host, port,
-                 device="/dev/video0", width=1280, height=720, fps=30):
+                 device="/dev/video0", width=1280, height=720, fps=30,
+                 encode="native"):
         self.host = host
         self.port = port
         self.device = device
@@ -35,6 +36,7 @@ class H264Streamer:
         self.height = height
         self.fps = fps
 
+        self.encode = encode
         self._running = False
         self._ffmpeg_proc = None
         self._sock = None
@@ -46,15 +48,29 @@ class H264Streamer:
 
     # ---- ffmpeg 进程 ----
     def _start_ffmpeg(self):
-        """启动 ffmpeg 子进程，从摄像头读取 H264 输出到 stdout pipe"""
+        """启动 ffmpeg 子进程，从摄像头读取 H264 输出到 stdout pipe
+
+        encode 模式:
+          - "native":  摄像头原生 H264 输出, -c copy 透传零编码开销
+          - "libx264": 摄像头无原生 H264 (仅 MJPG) 时软编码,
+                       ultrafast+zerolatency 适配树莓派 CPU
+        """
+        if self.encode == "native":
+            vcodec = ["-c", "copy"]  # 透传，零延迟
+            in_fmt = ["-input_format", "h264"]
+        else:
+            vcodec = ["-c:v", "libx264", "-preset", "ultrafast",
+                      "-tune", "zerolatency", "-pix_fmt", "yuv420p",
+                      "-g", str(self.fps), "-b:v", "2000k"]
+            in_fmt = ["-input_format", "mjpeg"]
         cmd = [
             "ffmpeg",
             "-f", "v4l2",
-            "-input_format", "h264",
+            *in_fmt,
             "-video_size", f"{self.width}x{self.height}",
             "-framerate", str(self.fps),
             "-i", self.device,
-            "-c", "copy",              # 透传，零延迟
+            *vcodec,
             "-f", "h264",
             "-fflags", "nobuffer",
             "-flags", "low_delay",
@@ -199,6 +215,8 @@ def main():
     parser.add_argument("--width", type=int, default=1280, help="分辨率宽")
     parser.add_argument("--height", type=int, default=720, help="分辨率高")
     parser.add_argument("--fps", type=int, default=30, help="帧率")
+    parser.add_argument("--encode", default="native", choices=["native", "libx264"],
+                        help="编码模式: native=摄像头原生H264透传, libx264=MJPG软编码")
     args = parser.parse_args()
 
     streamer = H264Streamer(
@@ -208,6 +226,7 @@ def main():
         width=args.width,
         height=args.height,
         fps=args.fps,
+        encode=args.encode,
     )
     streamer.start()
 

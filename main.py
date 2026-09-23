@@ -81,6 +81,7 @@ VIDEO_PORT = 42011             # 视频推流端口
 VIDEO_WIDTH = 1280             # 摄像头分辨率
 VIDEO_HEIGHT = 720
 VIDEO_FPS = 30
+VIDEO_ENCODE = "libx264"       # 编码模式: 本摄像头仅支持MJPG, 需软编码 (原生H264摄像头用 native)
 
 # 统一发送
 UNIFIED_SEND_INTERVAL = 1.0   # 1Hz 统一发送间隔
@@ -148,6 +149,7 @@ def main(dry_run=False):
             width=VIDEO_WIDTH,
             height=VIDEO_HEIGHT,
             fps=VIDEO_FPS,
+            encode=VIDEO_ENCODE,
         )
         video_streamer.start()
 
