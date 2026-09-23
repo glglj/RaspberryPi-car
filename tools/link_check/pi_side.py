@@ -21,7 +21,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../.
 from tcp_sender import TcpSender                       # noqa: E402
 from robot_run.udp_receiver import TcpReceiver         # noqa: E402
 from model.models import (                             # noqa: E402
-    OdometryFrame, RobotPose, CMD_STOP,
+    MSG_ODOM, OdometryFrame, RobotPose, CMD_STOP,
 )
 
 DATA_HOST = "43.227.71.58"
