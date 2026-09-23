@@ -66,15 +66,18 @@ KF_DIST_THRESHOLD = 0.5       # 最小位移间隔 (m)
 KF_ANGLE_THRESHOLD = 15.0     # 最小旋转间隔 (度)
 KF_TIME_THRESHOLD = 2.0       # 最小时间间隔 (s)
 
-# TCP 目标
+# TCP 目标 (端云通信链路, 见 DEPLOY.md 端口分配表)
+# Pi→PC 数据: bj.zyfrp.vip:5001 (frpmgr 已有映射 → PC:5001)
 TCP_SLAM_IP = "bj.zyfrp.vip"  # 统一数据发送地址
 TCP_PORT = 5001
-CMD_PORT = 5006
+# PC→Pi 命令: bj.zyfrp.vip:8002 (树莓派端 frpc_zyfrp 映射 → 本机 8002)
+CMD_PORT = 8002
 
 # 视频推流
 ENABLE_VIDEO_STREAM = False     # 是否启用 H264 视频推流
-VIDEO_HOST = "bj.zyfrp.vip"    # 视频推流目标地址
-VIDEO_PORT = 5007              # 视频推流端口
+# Pi→PC 视频: 43.227.71.58:42011 (frpmgr 已有映射 → PC:8888)
+VIDEO_HOST = "43.227.71.58"    # 视频推流目标地址
+VIDEO_PORT = 42011             # 视频推流端口
 VIDEO_WIDTH = 1280             # 摄像头分辨率
 VIDEO_HEIGHT = 720
 VIDEO_FPS = 30
@@ -87,16 +90,34 @@ MAP_SAVE_INTERVAL = 5.0        # 地图保存间隔 (秒)
 MAP_SAVE_DIR = "maps"          # 地图保存目录
 
 
-def main():
+class _NullMotion:
+    """dry-run 模式的运动控制空实现 (台架联调/演示时不动车轮)"""
+
+    def stop(self):
+        pass
+
+    def go_straight(self, speed):
+        pass
+
+    def turn(self, direction, param):
+        pass
+
+    def stop_controller(self):
+        pass
+
+
+def main(dry_run=False):
     # ---- pigpio ----
     pi = pigpio.pi()
     if not pi.connected:
         print("pigpio 未运行，请先执行 sudo pigpiod")
         return
 
-    # ---- 电机 ----
-    motor_a = Motor(pi, pwm_pin=18, in1=23, in2=24, freq=1000)
-    motor_b = Motor(pi, pwm_pin=13, in1=5, in2=6, freq=1000)
+    # ---- 电机 (dry-run 模式跳过, 台架联调不驱动车轮) ----
+    motor_a = motor_b = None
+    if not dry_run:
+        motor_a = Motor(pi, pwm_pin=18, in1=23, in2=24, freq=1000)
+        motor_b = Motor(pi, pwm_pin=13, in1=5, in2=6, freq=1000)
 
     # ---- 传感器 ----
     lidar = LidarSensor()
@@ -112,8 +133,11 @@ def main():
     receiver = TcpReceiver(port=CMD_PORT)
 
     # ---- 运动控制 ----
-    motion = MotionController(motor_a, motor_b, encoder, imu)
-    motion.start()
+    if dry_run:
+        motion = _NullMotion()
+    else:
+        motion = MotionController(motor_a, motor_b, encoder, imu)
+        motion.start()
 
     # ---- 视频推流 (可选) ----
     video_streamer = None
@@ -385,7 +409,7 @@ def main():
         t.start()
 
     print("=" * 50)
-    print("系统运行中:")
+    print("系统运行中:" + (" (dry-run: 电机已禁用)" if dry_run else ""))
     print("  [slam]    SLAM处理 (里程计+扫描匹配+局部建图+关键帧)")
     print("  [unified] 1Hz 统一发送 (雷达+IMU+里程计+局部子图)")
     print("  [cmd]     指令接收 + SLAM反馈处理")
@@ -425,4 +449,9 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    import argparse
+    parser = argparse.ArgumentParser(description="树莓派智能车主程序")
+    parser.add_argument("--dry-run", action="store_true",
+                        help="台架联调模式: 传感器与通信正常工作, 但不驱动电机")
+    args = parser.parse_args()
+    main(dry_run=args.dry_run)
