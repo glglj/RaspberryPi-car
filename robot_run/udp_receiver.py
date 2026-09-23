@@ -89,8 +89,8 @@ class TcpReceiver:
         sock.settimeout(timeout)
 
         try:
-            # 读取 12 字节 header
-            header = self._recv_exactly(sock, 12)
+            # 读取 16 字节 header (!IQI: type 4B + ts 8B + len 4B)
+            header = self._recv_exactly(sock, 16)
             if header is None:
                 return None
 
