@@ -1,0 +1,28 @@
+# ===== Python =====
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+
+# 说明: lidar/*.so、imu/*.so 为预编译的 aarch64(Cython) 模块,
+# 为便于树莓派直接部署而有意纳入版本管理, 不要加入 .gitignore。
+
+# ===== 虚拟环境 =====
+.venv/
+venv/
+
+# ===== IDE / 工具 =====
+.idea/
+.vscode/
+.claude/
+.continue/
+
+# ===== 运行时产物 =====
+maps/
+*.log
+camera/test.jpg
+
+# ===== 系统文件 =====
+Thumbs.db
+.DS_Store
